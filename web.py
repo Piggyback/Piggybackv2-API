@@ -21,7 +21,7 @@ class PbUser(db.Model):
     foursquareId = db.Column(db.BigInteger, unique=True)
     youtubeUsername = db.Column(db.String(32), unique=True)
     isPiggybackUser = db.Column(db.Boolean)
-    ambassadors = db.relationship('Ambassador', backref='follower', lazy='dynamic')
+    ambassadors = db.relationship('PbAmbassador', backref='follower', lazy='dynamic')
 
     def __init__(self, firstName, lastName, fbId, email, spotifyUsername, foursquareId, youtubeUsername, isPiggybackUser):
         self.firstName = firstName
@@ -33,7 +33,7 @@ class PbUser(db.Model):
         self.youtubeUsername = youtubeUsername  
         self.isPiggybackUser = isPiggybackUser
 
-class Ambassador(db.Model):
+class PbAmbassador(db.Model):
     followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
     ambassadorUid = db.Column(db.Integer, primary_key=True)
     ambassadorType = db.Column(db.String(16), primary_key=True)
@@ -140,7 +140,7 @@ def updateUserUsingPb():
 @app.route("/addAmbassador", methods = ['POST'])
 def addAmbassador():
     requestJson = request.json
-    ambassador = Ambassador(requestJson['followerUid'], requestJson['ambassadorUid'], requestJson['ambassadorType'])
+    ambassador = PbAmbassador(requestJson['followerUid'], requestJson['ambassadorUid'], requestJson['ambassadorType'])
     db.session.add(ambassador)
     db.session.commit()
 
