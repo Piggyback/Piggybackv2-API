@@ -7,5 +7,9 @@ manager = Manager(app)
 def createDbSchema():
     db.create_all()
 
+@manager.command
+def dropDbSchema():
+    db.drop_all()
+
 if __name__ == "__main__":
     manager.run()
