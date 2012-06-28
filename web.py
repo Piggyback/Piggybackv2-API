@@ -11,7 +11,7 @@ if not os.environ.get('PROD'):
 
 db = SQLAlchemy(app)
 
-class User(db.Model):
+class PbUser(db.Model):
     uid = db.Column(db.Integer, primary_key=True)
     firstName = db.Column(db.String(64))
     lastName = db.Column(db.String(64))
@@ -34,7 +34,7 @@ class User(db.Model):
         self.isPiggybackUser = isPiggybackUser
 
 class Ambassador(db.Model):
-    followerUid = db.Column(db.Integer, db.ForeignKey("user.uid"))
+    followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
     ambassadorUid = db.Column(db.Integer, primary_key=True)
     ambassadorType = db.Column(db.String(16), primary_key=True)
 
@@ -51,7 +51,7 @@ def index():
 @app.route("/user", methods = ['GET'])
 def getUser():
     requestJson = request.json
-    user = User.query.filter_by(fbId=requestJson.get('fbId')).first()
+    user = PbUser.query.filter_by(fbId=requestJson.get('fbId')).first()
     resp = None
     if user == None:
         resp = jsonify({'error':'User does not exist'})
@@ -70,7 +70,7 @@ def addUser():
     resp = getUser()
     if resp.status_code == 404:
         # user does not exist - add user
-        user = User(requestJson.get('firstName'), requestJson.get('lastName'), requestJson.get('fbId'), requestJson.get('email'), 
+        user = PbUser(requestJson.get('firstName'), requestJson.get('lastName'), requestJson.get('fbId'), requestJson.get('email'), 
             requestJson.get('spotifyUsername'), requestJson.get('foursquareId'), requestJson.get('youtubeUsername'), 
             requestJson.get('isPiggybackUser'))
         db.session.add(user)
@@ -87,7 +87,7 @@ def addUser():
 @app.route("/updateUserSpotify", methods = ['POST'])
 def updateUserSpotify():
     requestJson = request.json
-    User.query.filter_by(uid = requestJson['uid']).update({'spotifyUsername':requestJson['spotifyUsername']})
+    PbUser.query.filter_by(uid = requestJson['uid']).update({'spotifyUsername':requestJson['spotifyUsername']})
     db.session.commit()
 
     # TODO: if db insert was successful, return status 200. 
@@ -100,7 +100,7 @@ def updateUserSpotify():
 @app.route("/updateUserFoursquare", methods = ['POST'])
 def updateUserFoursquare():
     requestJson = request.json
-    User.query.filter_by(uid = requestJson['uid']).update({'foursquareId':requestJson['foursquareId']})
+    PbUser.query.filter_by(uid = requestJson['uid']).update({'foursquareId':requestJson['foursquareId']})
     db.session.commit()
 
     # TODO: if db insert was successful, return status 200. 
@@ -113,7 +113,7 @@ def updateUserFoursquare():
 @app.route("/updateUserYoutube", methods = ['POST'])
 def updateUserYoutube():
     requestJson = request.json
-    User.query.filter_by(uid = requestJson['uid']).update({'youtubeUsername':requestJson['youtubeUsername']})
+    PbUser.query.filter_by(uid = requestJson['uid']).update({'youtubeUsername':requestJson['youtubeUsername']})
     db.session.commit()
 
     # TODO: if db insert was successful, return status 200. 
@@ -126,7 +126,7 @@ def updateUserYoutube():
 @app.route("/updateUserUsingPb", methods = ['POST'])
 def updateUserUsingPb():
     requestJson = request.json
-    User.query.filter_by(uid = requestJson['uid']).update({'isPiggybackUser':requestJson['isPiggybackUser']})
+    PbUser.query.filter_by(uid = requestJson['uid']).update({'isPiggybackUser':requestJson['isPiggybackUser']})
     db.session.commit()
 
     # TODO: if db insert was successful, return status 200. 
