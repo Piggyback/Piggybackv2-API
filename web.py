@@ -20,7 +20,7 @@ class PbUser(db.Model):
     spotifyUsername = db.Column(db.String(32), unique=True)
     foursquareId = db.Column(db.BigInteger, unique=True)
     youtubeUsername = db.Column(db.String(32), unique=True)
-    isPiggybackUser = db.Column(db.Boolean)
+    isPiggybackUser = db.Column(db.SmallInteger)
     ambassadors = db.relationship('PbAmbassador', backref='follower', lazy='dynamic')
 
     def __init__(self, firstName, lastName, fbId, email, spotifyUsername, foursquareId, youtubeUsername, isPiggybackUser):
@@ -81,6 +81,24 @@ def addUser():
             "spotifyUsername":user.spotifyUsername, "foursquareId":user.foursquareId, "youtubeUsername":user.youtubeUsername,
             "isPiggybackUser":user.isPiggybackUser}})
         resp.status_code = 200
+
+    return resp
+
+@app.route("/updateUser", methods = ['PUT'])
+def updateUser():
+    requestJson = request.json
+    if requestJson.get('spotifyUsername'):
+        PbUser.query.filter_by(uid = requestJson['uid']).update({'spotifyUsername':requestJson['spotifyUsername']})
+
+    if requestJson.get('foursquareId'):
+        PbUser.query.filter_by(uid = requestJson['uid']).update({'foursquareId':requestJson['foursquareId']})
+
+    if requestJson.get('youtubeUsername'):
+        PbUser.query.filter_by(uid = requestJson['uid']).update({'youtubeUsername':requestJson['youtubeUsername']})
+
+    db.session.commit()
+    resp = jsonify({})
+    resp.status_code = 200
 
     return resp
 
