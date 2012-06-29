@@ -57,9 +57,9 @@ def getUser():
         resp = jsonify({'error':'User does not exist'})
         resp.status_code = 404
     else:
-        resp = jsonify(uid=user.uid, firstName=user.firstName, lastName=user.lastName, fbid=user.fbId, email=user.email,
-            spotifyUsername=user.spotifyUsername, foursquareId=user.foursquareId, youtubeUsername=user.youtubeUsername,
-            isPiggybackUser=user.isPiggybackUser)
+        resp = jsonify({"PBUser":{"uid":user.uid, "firstName":user.firstName, "lastName":user.lastName, "fbid":user.fbId, "email":user.email,
+            "spotifyUsername":user.spotifyUsername, "foursquareId":user.foursquareId, "youtubeUsername":user.youtubeUsername,
+            "isPiggybackUser":user.isPiggybackUser}})
         resp.status_code = 200
 
     return resp
