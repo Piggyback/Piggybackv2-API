@@ -45,7 +45,7 @@ class PbAmbassador(db.Model):
 
 @app.route("/")
 def index():
-    return 'Hello World'
+    return 'hello world.'
 
 # User API
 @app.route("/user", methods = ['GET'])
@@ -77,9 +77,7 @@ def addUser():
         db.session.commit()
 
         # TODO: if db insert was successful, return status 200. 
-        resp = jsonify({"PBUser":{"uid":user.uid, "firstName":user.firstName, "lastName":user.lastName, "fbid":user.fbId, "email":user.email,
-            "spotifyUsername":user.spotifyUsername, "foursquareId":user.foursquareId, "youtubeUsername":user.youtubeUsername,
-            "isPiggybackUser":user.isPiggybackUser}})
+        resp = jsonify({"PBUser":{"uid":user.uid}})
         resp.status_code = 200
 
     return resp
@@ -96,60 +94,11 @@ def updateUser():
     if requestJson.get('youtubeUsername'):
         PbUser.query.filter_by(uid = requestJson['uid']).update({'youtubeUsername':requestJson['youtubeUsername']})
 
+    if requestJson.get('isPiggybackUser'):
+        PbUser.query.filter_by(uid = requestJson['uid']).update({'isPiggybackUser':requestJson['isPiggybackUser']})
+
     db.session.commit()
     resp = jsonify({})
-    resp.status_code = 200
-
-    return resp
-
-@app.route("/updateUserSpotify", methods = ['POST'])
-def updateUserSpotify():
-    requestJson = request.json
-    PbUser.query.filter_by(uid = requestJson['uid']).update({'spotifyUsername':requestJson['spotifyUsername']})
-    db.session.commit()
-
-    # TODO: if db insert was successful, return status 200. 
-    message = {'status': 200}
-    resp = jsonify(message)
-    resp.status_code = 200
-
-    return resp
-
-@app.route("/updateUserFoursquare", methods = ['POST'])
-def updateUserFoursquare():
-    requestJson = request.json
-    PbUser.query.filter_by(uid = requestJson['uid']).update({'foursquareId':requestJson['foursquareId']})
-    db.session.commit()
-
-    # TODO: if db insert was successful, return status 200. 
-    message = {'status': 200}
-    resp = jsonify(message)
-    resp.status_code = 200
-
-    return resp
-
-@app.route("/updateUserYoutube", methods = ['POST'])
-def updateUserYoutube():
-    requestJson = request.json
-    PbUser.query.filter_by(uid = requestJson['uid']).update({'youtubeUsername':requestJson['youtubeUsername']})
-    db.session.commit()
-
-    # TODO: if db insert was successful, return status 200. 
-    message = {'status': 200}
-    resp = jsonify(message)
-    resp.status_code = 200
-
-    return resp
-
-@app.route("/updateUserUsingPb", methods = ['POST'])
-def updateUserUsingPb():
-    requestJson = request.json
-    PbUser.query.filter_by(uid = requestJson['uid']).update({'isPiggybackUser':requestJson['isPiggybackUser']})
-    db.session.commit()
-
-    # TODO: if db insert was successful, return status 200. 
-    message = {'status': 200}
-    resp = jsonify(message)
     resp.status_code = 200
 
     return resp
