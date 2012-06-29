@@ -77,7 +77,7 @@ def addUser():
         db.session.commit()
 
         # TODO: if db insert was successful, return status 200. 
-        resp = jsonify({"PbUser":{"uid":user.uid, "firstName":user.firstName, "lastName":user.lastName, "fbid":user.fbId, "email":user.email,
+        resp = jsonify({"PBUser":{"uid":user.uid, "firstName":user.firstName, "lastName":user.lastName, "fbid":user.fbId, "email":user.email,
             "spotifyUsername":user.spotifyUsername, "foursquareId":user.foursquareId, "youtubeUsername":user.youtubeUsername,
             "isPiggybackUser":user.isPiggybackUser}})
         resp.status_code = 200
