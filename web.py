@@ -34,14 +34,17 @@ class PbUser(db.Model):
         self.isPiggybackUser = isPiggybackUser
 
 class PbAmbassador(db.Model):
-    followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
+    followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
     ambassadorUid = db.Column(db.Integer, primary_key=True)
     ambassadorType = db.Column(db.String(16), primary_key=True)
+    deleted = db.Column(db.SmallInteger, default=0)
 
-    def __init__(self, followerUid, ambassadorUid, ambassadorType):
+    def __init__(self, followerUid, ambassadorUid, ambassadorType, deleted):
         self.ambassadorUid = ambassadorUid
         self.ambassadorType = ambassadorType
         self.followerUid = followerUid
+        self.deleted = deleted
+
 
 @app.route("/")
 def index():
@@ -72,7 +75,7 @@ def addUser():
         # user does not exist - add user
         user = PbUser(requestJson.get('firstName'), requestJson.get('lastName'), requestJson.get('fbId'), requestJson.get('email'), 
             requestJson.get('spotifyUsername'), requestJson.get('foursquareId'), requestJson.get('youtubeUsername'), 
-            requestJson.get('isPiggybackUser'))
+            requestJson['isPiggybackUser'])
         db.session.add(user)
         db.session.commit()
 
@@ -107,13 +110,23 @@ def updateUser():
 @app.route("/addAmbassador", methods = ['POST'])
 def addAmbassador():
     requestJson = request.json
-    ambassador = PbAmbassador(requestJson['followerUid'], requestJson['ambassadorUid'], requestJson['ambassadorType'])
-    db.session.add(ambassador)
+    ambassador = PbAmbassador(requestJson['followerUid'], requestJson['ambassadorUid'], requestJson['ambassadorType'], 0)
+    db.session.merge(ambassador)
     db.session.commit()
 
-    # TODO: if db insert was successful, return status 200. 
-    message = {'status': 200}
-    resp = jsonify(message)
+    resp = jsonify({})
+    resp.status_code = 200
+
+    return resp
+
+@app.route("/removeAmbassador", methods = ['PUT'])
+def removeAmbassador():
+    # doesn't actually remove from DB, just updates flag
+    requestJson = request.json
+    PbAmbassador.query.filter_by(followerUid = requestJson['followerUid'], ambassadorUid = requestJson['ambassadorUid'], ambassadorType = requestJson['ambassadorType']).update({'deleted':1})
+
+    db.session.commit()
+    resp = jsonify({})
     resp.status_code = 200
 
     return resp
