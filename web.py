@@ -79,7 +79,7 @@ def addUser():
         db.session.add(user)
         db.session.commit()
 
-        # TODO: if db insert was successful, return status 200. 
+        # # TODO: if db insert was successful, return status 200. 
         resp = jsonify({"PBUser":{"uid":user.uid}})
         resp.status_code = 200
 
