@@ -140,9 +140,12 @@ def removeAmbassador():
 # Push notification
 @app.route("/pushNotif", methods = ['POST'])
 def pushNotif():
-    requestJson = request.json
-    resp = jsonify({"DeviceToken":requestJson.get('deviceToken')})
-    # resp = jsonify({})
+    # requestJson = request.json
+    # resp = jsonify({"DeviceToken":requestJson.get('deviceToken')})
+    token_hex = '6d9f47bf51e9096ad58bc02c386a6c775e90f56756147aace097713f5c95db73'
+    payload = Payload(alert="Hello World!")
+    apns.gateway_server.send_notification(token_hex, payload)
+    resp = jsonify({})
     resp.status_code = 200
 
     return resp
