@@ -2,6 +2,7 @@ import os
 import simplejson
 from flask import Flask, render_template, redirect, url_for, request, Response, jsonify
 from flaskext.sqlalchemy import SQLAlchemy
+from apns import APNs, Payload
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 
@@ -10,6 +11,8 @@ if not os.environ.get('PROD'):
     app.debug = True
 
 db = SQLAlchemy(app)
+
+apns = APNs(use_sandbox=True, cert_file='cert.pem', key_file='key.pem')
 
 class PbUser(db.Model):
     uid = db.Column(db.Integer, primary_key=True)
@@ -134,6 +137,15 @@ def removeAmbassador():
 
     return resp
 
+# Push notification
+@app.route("/pushNotif", methods = ['POST'])
+def pushNotif():
+    requestJson = request.json
+    resp = jsonify({"DeviceToken":requestJson.get('deviceToken')})
+    # resp = jsonify({})
+    resp.status_code = 200
+
+    return resp
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
