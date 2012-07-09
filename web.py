@@ -17,9 +17,9 @@ class PbUser(db.Model):
     lastName = db.Column(db.String(64))
     fbId = db.Column(db.BigInteger, unique=True)
     email = db.Column(db.String(64))
-    spotifyUsername = db.Column(db.String(32), unique=True)
-    foursquareId = db.Column(db.BigInteger, unique=True)
-    youtubeUsername = db.Column(db.String(32), unique=True)
+    spotifyUsername = db.Column(db.String(32))
+    foursquareId = db.Column(db.BigInteger)
+    youtubeUsername = db.Column(db.String(32))
     isPiggybackUser = db.Column(db.SmallInteger)
     ambassadors = db.relationship('PbAmbassador', backref='follower', lazy='dynamic')
 
@@ -29,7 +29,10 @@ class PbUser(db.Model):
         self.fbId = fbId
         self.email = email
         self.spotifyUsername = spotifyUsername
-        self.foursquareId = foursquareId
+        if foursquareId == 0:
+            self.foursquareId = None
+        else:
+            self.foursquareId = foursquareId
         self.youtubeUsername = youtubeUsername  
         self.isPiggybackUser = isPiggybackUser
 
