@@ -3,3 +3,4 @@ Flask-Script==0.3.1
 Flask-SQLAlchemy==0.15
 psycopg2==2.4.4
 simplejson==2.3.0
+apns==1.1.1
