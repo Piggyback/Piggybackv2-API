@@ -1,5 +1,6 @@
 import os
 import simplejson
+import datetime
 from flask import Flask, render_template, redirect, url_for, request, Response, jsonify
 from flaskext.sqlalchemy import SQLAlchemy
 from apns import APNs, Payload
@@ -24,9 +25,11 @@ class PbUser(db.Model):
     foursquareId = db.Column(db.BigInteger)
     youtubeUsername = db.Column(db.String(32))
     isPiggybackUser = db.Column(db.SmallInteger)
+    dateAdded = db.Column(db.DateTime)
+    dateBecamePbUser = db.Column(db.DateTime)
     ambassadors = db.relationship('PbAmbassador', backref='follower', lazy='dynamic')
 
-    def __init__(self, firstName, lastName, fbId, email, spotifyUsername, foursquareId, youtubeUsername, isPiggybackUser):
+    def __init__(self, firstName, lastName, fbId, email, spotifyUsername, foursquareId, youtubeUsername, isPiggybackUser, dateAdded, dateBecamePbUser):
         self.firstName = firstName
         self.lastName = lastName
         self.fbId = fbId
@@ -38,27 +41,65 @@ class PbUser(db.Model):
             self.foursquareId = foursquareId
         self.youtubeUsername = youtubeUsername
         self.isPiggybackUser = isPiggybackUser
+        self.dateAdded = dateAdded
+        self.dateBecamePbUser = dateBecamePbUser
 
 class PbAmbassador(db.Model):
     followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
     ambassadorUid = db.Column(db.Integer, primary_key=True)
     ambassadorType = db.Column(db.String(16), primary_key=True)
+    dateAdded = db.Column(db.DateTime)
     deleted = db.Column(db.SmallInteger, default=0)
 
-    def __init__(self, followerUid, ambassadorUid, ambassadorType, deleted):
+    def __init__(self, followerUid, ambassadorUid, ambassadorType, dateAdded, deleted):
         self.ambassadorUid = ambassadorUid
         self.ambassadorType = ambassadorType
         self.followerUid = followerUid
+        self.dateAdded = dateAdded
         self.deleted = deleted
 
 class PbIphonePushToken(db.Model):
     uid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
     iphonePushToken = db.Column(db.String(64), primary_key=True)
+    dateAdded = db.Column(db.DateTime)
 
-    def __init__(self, uid, iphonePushToken):
+    def __init__(self, uid, iphonePushToken, dateAdded):
         self.uid = uid
         self.iphonePushToken = iphonePushToken
+        self.dateAdded = dateAdded
 
+#TODO: separate uid from music activity
+class PbMusicActivity(db.Model):
+    musicId = db.Column(db.BigInteger, primary_key=True)
+    uid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
+    artistName = db.Column(db.String(64))
+    songTitle = db.Column(db.String(64))
+    albumTitle = db.Column(db.String(32))
+    albumYear = db.Column(db.Integer)
+    spotifyUrl = db.Column(db.String(64))
+    # TODO: add album cover
+    dateAdded = db.Column(db.DateTime)
+
+    def __init__(self, uid, artistName, songTitle, albumTitle, albumYear, spotifyUrl, dateAdded):
+        self.uid = uid
+        self.artistName = artistName
+        self.songTitle = songTitle
+        self.albumTitle = albumTitle
+        self.albumYear = albumYear
+        self.spotifyUrl = spotifyUrl
+        self.dateAdded = dateAdded
+
+class PbTodo(db.Model):
+    uid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
+    activityId = db.Column(db.BigInteger, primary_key=True)
+    todoType = db.Column(db.String(16), primary_key=True)
+    dateAdded = db.Column(db.DateTime)
+
+    def __init__(self, uid, activityId, todoType, dateAdded):
+        self.uid = uid
+        self.activityId = activityId
+        self.todoType = todoType
+        self.dateAdded = dateAdded
 
 @app.route("/")
 def index():
@@ -76,7 +117,7 @@ def getUser():
     else:
         resp = jsonify({"PBUser":{"uid":user.uid, "firstName":user.firstName, "lastName":user.lastName, "fbid":user.fbId, "email":user.email,
             "spotifyUsername":user.spotifyUsername, "foursquareId":user.foursquareId, "youtubeUsername":user.youtubeUsername,
-            "isPiggybackUser":user.isPiggybackUser}})
+            "isPiggybackUser":user.isPiggybackUser, "dateAdded":user.dateAdded, "dateBecamePbUser":user.dateBecamePbUser}})
         resp.status_code = 200
 
     return resp
@@ -87,9 +128,13 @@ def addUser():
     resp = getUser()
     if resp.status_code == 404:
         # user does not exist - add user
+        now = datetime.datetime.now()
+        dateBecamePbUser = None
+        if requestJson['isPiggybackUser'] == 1:
+            dateBecamePbUser = now
         user = PbUser(requestJson.get('firstName'), requestJson.get('lastName'), requestJson.get('fbId'), requestJson.get('email'), 
             requestJson.get('spotifyUsername'), requestJson.get('foursquareId'), requestJson.get('youtubeUsername'), 
-            requestJson['isPiggybackUser'])
+            requestJson['isPiggybackUser'], now, dateBecamePbUser)
         db.session.add(user)
         db.session.commit()
 
@@ -112,7 +157,11 @@ def updateUser():
         PbUser.query.filter_by(uid = requestJson['uid']).update({'youtubeUsername':requestJson['youtubeUsername']})
 
     if requestJson.get('isPiggybackUser'):
-        PbUser.query.filter_by(uid = requestJson['uid']).update({'isPiggybackUser':requestJson['isPiggybackUser']})
+        if requestJson['isPiggybackUser'] == 1:
+            now = datetime.datetime.now()
+            PbUser.query.filter_by(uid = requestJson['uid']).update({'isPiggybackUser':requestJson['isPiggybackUser'], 'dateBecamePbUser':now})
+        else:
+            PbUser.query.filter_by(uid = requestJson['uid']).update({'isPiggybackUser':requestJson['isPiggybackUser']})
 
     db.session.commit()
     resp = jsonify({})
@@ -124,7 +173,8 @@ def updateUser():
 @app.route("/addAmbassador", methods = ['POST'])
 def addAmbassador():
     requestJson = request.json
-    ambassador = PbAmbassador(requestJson['followerUid'], requestJson['ambassadorUid'], requestJson['ambassadorType'], 0)
+    now = datetime.datetime.now()
+    ambassador = PbAmbassador(requestJson['followerUid'], requestJson['ambassadorUid'], requestJson['ambassadorType'], now, 0)
     db.session.merge(ambassador)
     db.session.commit()
 
@@ -149,7 +199,8 @@ def removeAmbassador():
 @app.route("/addIphonePushToken", methods = ['POST'])
 def pushNotif():
     requestJson = request.json
-    iphonePushToken = PbIphonePushToken(requestJson['uid'], requestJson['deviceToken'])
+    now = datetime.datetime.now()
+    iphonePushToken = PbIphonePushToken(requestJson['uid'], requestJson['deviceToken'], now)
     db.session.add(iphonePushToken)
     db.session.commit()
     # token_hex = requestJson.get('deviceToken')
