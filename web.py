@@ -36,7 +36,7 @@ class PbUser(db.Model):
             self.foursquareId = None
         else:
             self.foursquareId = foursquareId
-        self.youtubeUsername = youtubeUsername  
+        self.youtubeUsername = youtubeUsername
         self.isPiggybackUser = isPiggybackUser
 
 class PbAmbassador(db.Model):
@@ -50,6 +50,14 @@ class PbAmbassador(db.Model):
         self.ambassadorType = ambassadorType
         self.followerUid = followerUid
         self.deleted = deleted
+
+class PbIphonePushToken(db.Model):
+    uid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
+    iphonePushToken = db.Column(db.String(64), primary_key=True)
+
+    def __init__(self, uid, iphonePushToken):
+        self.uid = uid
+        self.iphonePushToken = iphonePushToken
 
 
 @app.route("/")
@@ -138,13 +146,16 @@ def removeAmbassador():
     return resp
 
 # Push notification
-@app.route("/pushNotif", methods = ['POST'])
+@app.route("/addIphonePushToken", methods = ['POST'])
 def pushNotif():
     requestJson = request.json
-    # resp = jsonify({"DeviceToken":requestJson.get('deviceToken')})
-    token_hex = requestJson.get('deviceToken')
-    payload = Payload(alert="hello world.")
-    apns.gateway_server.send_notification(token_hex, payload)
+    iphonePushToken = PbIphonePushToken(requestJson['uid'], requestJson['deviceToken'])
+    db.session.add(iphonePushToken)
+    db.session.commit()
+    # token_hex = requestJson.get('deviceToken')
+    # payload = Payload(alert="hello world.")
+    # apns.gateway_server.send_notification(token_hex, payload)
+
     resp = jsonify({})
     resp.status_code = 200
 
