@@ -81,7 +81,7 @@ class PbAmbassadorActivity(db.Model):
         self.itemType = itemType
         self.dateAdded = dateAdded
 
-class PbMusicItems(db.Model):
+class PbMusicItem(db.Model):
     musicItemId = db.Column(db.Integer, primary_key=True)
     artistName = db.Column(db.String(64))
     songTitle = db.Column(db.String(64))
