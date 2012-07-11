@@ -68,25 +68,45 @@ class PbIphonePushToken(db.Model):
         self.iphonePushToken = iphonePushToken
         self.dateAdded = dateAdded
 
-#TODO: separate uid from music activity
-class PbMusicActivity(db.Model):
-    musicId = db.Column(db.BigInteger, primary_key=True)
+class PbAmbassadorActivity(db.Model):
+    activityId = db.Column(db.Integer, primary_key=True)
     uid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
+    itemId = db.Column(db.Integer)
+    itemType = db.Column(db.String(16))     # e.g., "music", "places"
+    dateAdded = db.Column(db.DateTime)
+
+    def __init__(self, uid, itemId, itemType, dateAdded):
+        self.uid = uid
+        self.itemId = itemId
+        self.itemType = itemType
+        self.dateAdded = dateAdded
+
+class PbMusicItems(db.Model):
+    musicItemId = db.Column(db.Integer, primary_key=True)
     artistName = db.Column(db.String(64))
     songTitle = db.Column(db.String(64))
     albumTitle = db.Column(db.String(32))
     albumYear = db.Column(db.Integer)
     spotifyUrl = db.Column(db.String(64))
-    # TODO: add album cover
-    dateAdded = db.Column(db.DateTime)
 
-    def __init__(self, uid, artistName, songTitle, albumTitle, albumYear, spotifyUrl, dateAdded):
-        self.uid = uid
+    def __init__(self, artistName, songTitle, albumTitle, albumYear, spotifyUrl, dateAdded):
         self.artistName = artistName
         self.songTitle = songTitle
         self.albumTitle = albumTitle
         self.albumYear = albumYear
         self.spotifyUrl = spotifyUrl
+
+class PbNews(db.Model):
+    newsId = db.Column(db.Integer, primary_key=True)
+    activityId = db.Column(db.Integer, db.ForeignKey("pb_ambassador_activity.activityId"))
+    followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
+    actionType = db.Column(db.String(16))   # e.g., "like", "todo"
+    dateAdded = db.Column(db.DateTime)
+
+    def __init__(self, activityId, followerUid, actionType, dateAdded):
+        self.activityId = activityId
+        self.followerUid = followerUid
+        self.actionType = actionType
         self.dateAdded = dateAdded
 
 class PbTodo(db.Model):
