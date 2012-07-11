@@ -123,7 +123,7 @@ def getUser():
     else:
         resp = jsonify({"PBUser":{"uid":user.uid, "firstName":user.firstName, "lastName":user.lastName, "fbid":user.fbId, "email":user.email,
             "spotifyUsername":user.spotifyUsername, "foursquareId":user.foursquareId, "youtubeUsername":user.youtubeUsername,
-            "isPiggybackUser":user.isPiggybackUser, "dateAdded":user.dateAdded, "dateBecamePbUser":user.dateBecamePbUser}})
+            "isPiggybackUser":user.isPiggybackUser, "dateAdded":user.dateAdded.strftime("%Y-%m-%d %H:%M:%S"), "dateBecamePbUser":user.dateBecamePbUser.strftime("%Y-%m-%d %H:%M:%S")}})
         resp.status_code = 200
 
     return resp
@@ -215,6 +215,42 @@ def pushNotif():
 
     resp = jsonify({})
     resp.status_code = 200
+
+    return resp
+
+# musicItem API
+@app.route("/musicItem", methods = ['GET'])
+def getMusicItem():
+    requestJson = request.json
+    musicItem = PbMusicItem.query.filter_by(musicItemId=requestJson.get('musicItemId')).first()
+    resp = None
+    if musicItem == None:
+        resp = jsonify({'error':'MusicItem does not exist'})
+        resp.status_code = 404
+    else:
+        resp = jsonify({"PBMusicItem":{"musicItemId":musicItem.musicItemId, 
+                        "artistName":musicItem.artistName, 
+                        "songTitle":musicItem.songTitle, 
+                        "albumTitle":musicItem.albumTitle, 
+                        "albumYear":musicItem.albumYear, 
+                        "spotifyUrl":musicItem.spotifyUrl}})
+        resp.status_code = 200
+
+    return resp
+
+@app.route("/addMusicItem", methods = ['POST'])
+def addMusicItem():
+    requestJson = request.json
+    resp = getMusicItem()
+    if resp.status_code == 404:
+        # musicItem does not exist - add it
+        now = datetime.datetime.now()
+        musicItem = PbMusicItem(requestJson.get('artistName'), requestJson.get('songTitle'), requestJson.get('albumTitle'), requestJson.get('albumYear'), requestJson.get('spotifyUrl'))
+        db.session.add(musicItem)
+        db.session.commit()
+
+        resp = jsonify({"PBMusicItem":{"musicItemId":musicItem.musicItemId}})
+        resp.status_code = 200
 
     return resp
 
