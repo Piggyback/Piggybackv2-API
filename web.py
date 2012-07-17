@@ -94,17 +94,15 @@ class PbMusicItem(db.Model):
         self.albumYear = albumYear
         self.spotifyUrl = spotifyUrl
 
-class Pb(db.Model):
-    newsId = db.Column(db.Integer, primary_key=True)
-    activityId = db.Column(db.Integer, db.ForeignKey("pb_ambassador_activity.activityId"))
+class PbMusicTodo(db.Model):
+    musicNewsId = db.Column(db.Integer, primary_key=True)
+    musicActivityId = db.Column(db.Integer, db.ForeignKey("pb_ambassador_music_activity.musicActivityId"))
     followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
-    actionType = db.Column(db.String(16))   # e.g., "like", "todo"
     dateAdded = db.Column(db.DateTime)
 
-    def __init__(self, activityId, followerUid, actionType, dateAdded):
-        self.activityId = activityId
+    def __init__(self, musicActivityId, followerUid, dateAdded):
+        self.musicActivityId = musicActivityId
         self.followerUid = followerUid
-        self.actionType = actionType
         self.dateAdded = dateAdded
 
 @app.route("/")
@@ -121,8 +119,12 @@ def getUser():
         resp = jsonify({'error':'User does not exist'})
         resp.status_code = 404
     else:
+        # resp = jsonify({"PBUser":{"uid":user.uid, "firstName":user.firstName, "lastName":user.lastName, "fbid":user.fbId, "email":user.email,
+        #     "spotifyUsername":user.spotifyUsername, "foursquareId":user.foursquareId, "youtubeUsername":user.youtubeUsername,
+        #     "isPiggybackUser":user.isPiggybackUser, "dateAdded":user.dateAdded.strftime("%Y-%m-%d %H:%M:%S"), "dateBecamePbUser":user.dateBecamePbUser.strftime("%Y-%m-%d %H:%M:%S")}})
+        
         resp = jsonify({"PBUser":{"uid":user.uid, "firstName":user.firstName, "lastName":user.lastName, "fbid":user.fbId, "email":user.email,
-            "spotifyUsername":user.spotifyUsername, "foursquareId":user.foursquareId, "youtubeUsername":user.youtubeUsername,
+            "spotifyUsername":user.spotifyUsername, "foursquareId":user.foursquareId, "youtubeUsername":user.youtubeUsername, 
             "isPiggybackUser":user.isPiggybackUser, "dateAdded":user.dateAdded.strftime("%Y-%m-%d %H:%M:%S"), "dateBecamePbUser":user.dateBecamePbUser.strftime("%Y-%m-%d %H:%M:%S")}})
         resp.status_code = 200
 
