@@ -261,46 +261,48 @@ def addMusicItem():
 # News Feed
 @app.route("/news", methods = ['GET'])
 def getNews():
-    # requestJson = request.json
-    firstMusicActivity = PbMusicActivity.query.filter_by(uid=1).first()
-    result = {
-        'musicActivity':
-        {
-            'musicActivityId':firstMusicActivity.musicActivityId,
-            'uid':firstMusicActivity.uid,
-            'dateAdded':firstMusicActivity.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
+    requestJson = request.json
+    musicActivity = PbMusicActivity.query.filter_by(uid=requestJson['uid']).all()
+    result = {'musicActivity':[]}
+    i=0
+    for activity in musicActivity:
+        result['musicActivity'].append({
+            'musicActivityId':activity.musicActivityId,
+            'uid':activity.uid,
+            'dateAdded':activity.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
             'musicItem':
             {
-                'musicItemId':firstMusicActivity.musicItem.musicItemId,
-                'artistName':firstMusicActivity.musicItem.artistName,
-                'songTitle':firstMusicActivity.musicItem.songTitle,
-                'albumTitle':firstMusicActivity.musicItem.albumTitle,
-                'albumYear':firstMusicActivity.musicItem.albumYear,
-                'spotifyUrl':firstMusicActivity.musicItem.spotifyUrl
+                'musicItemId':activity.musicItem.musicItemId,
+                'artistName':activity.musicItem.artistName,
+                'songTitle':activity.musicItem.songTitle,
+                'albumTitle':activity.musicItem.albumTitle,
+                'albumYear':activity.musicItem.albumYear,
+                'spotifyUrl':activity.musicItem.spotifyUrl
             },
             'todos':[]
-        }
-    }
-    for todo in firstMusicActivity.todos:
-        result['musicActivity']['todos'].append(
-            {
-                'musicTodoId':todo.musicTodoId,
-                'dateAdded':todo.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
-                'follower': 
+        })
+        for todo in activity.todos:
+            result['musicActivity'][i]['todos'].append(
                 {
-                    'uid':todo.follower.uid,
-                    'firstName':todo.follower.firstName,
-                    'lastName':todo.follower.lastName,
-                    'fbId':todo.follower.fbId,
-                    'email':todo.follower.email,
-                    'spotifyUsername':todo.follower.spotifyUsername,
-                    'foursquareId':todo.follower.foursquareId,
-                    'youtubeUsername':todo.follower.youtubeUsername,
-                    'isPiggybackUser':todo.follower.isPiggybackUser,
-                    'dateAdded':todo.follower.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
-                    'dateBecamePbUser':todo.follower.dateAdded.strftime("%Y-%m-%d %H:%M:%S")
-                }
-            })
+                    'musicTodoId':todo.musicTodoId,
+                    'dateAdded':todo.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
+                    'follower': 
+                    {
+                        'uid':todo.follower.uid,
+                        'firstName':todo.follower.firstName,
+                        'lastName':todo.follower.lastName,
+                        'fbId':todo.follower.fbId,
+                        'email':todo.follower.email,
+                        'spotifyUsername':todo.follower.spotifyUsername,
+                        'foursquareId':todo.follower.foursquareId,
+                        'youtubeUsername':todo.follower.youtubeUsername,
+                        'isPiggybackUser':todo.follower.isPiggybackUser,
+                        'dateAdded':todo.follower.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
+                        'dateBecamePbUser':todo.follower.dateAdded.strftime("%Y-%m-%d %H:%M:%S")
+                    }
+                })
+
+        i = i+1
 
     # resp = jsonify({"data":firstMusicActivity.musicItem.artistName})
     resp = jsonify(result)
