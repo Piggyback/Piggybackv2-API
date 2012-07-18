@@ -328,7 +328,7 @@ def getEmailListing():
     else:
         resp = jsonify({"PBEmailListing":{"emailId":emailListing.emailId,"emailAddress":emailListing.emailAddress}})
         resp.status_code = 200
-        resp.headers['Access-Control-Allow-Origin'] = "*"
+        resp.headers['Access-Control-Allow-Origin'] = '*'
 
     return resp
 
@@ -345,7 +345,7 @@ def addEmailListing():
         db.session.commit()
 
         resp = jsonify({"PBEmailListing":{"emailId":emailListing.emailId,"emailAddress":emailListing.emailAddress}})
-        resp.headers['Access-Control-Allow-Origin'] = "*"
+        resp.headers['Access-Control-Allow-Origin'] = '*'
         resp.status_code = 200
 
     return resp
