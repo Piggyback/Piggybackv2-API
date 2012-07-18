@@ -335,18 +335,19 @@ def getEmailListing():
 @app.route("/addEmailListing", methods = ['POST'])
 @crossdomain(origin='*')
 def addEmailListing():
-    requestJson = request.json
-    resp = getEmailListing() 
-    if resp.status_code == 404:
-        # email does not exist - add it
-        now = datetime.datetime.now()
-        emailListing = PbEmailListing(requestJson.get('emailAddress'),now)
-        db.session.add(emailListing)
-        db.session.commit()
+    # requestJson = request.json
+    resp = jsonify({})
+    # resp = getEmailListing() 
+    # if resp.status_code == 404:
+    #     # email does not exist - add it
+    #     now = datetime.datetime.now()
+    #     emailListing = PbEmailListing(requestJson.get('emailAddress'),now)
+    #     db.session.add(emailListing)
+    #     db.session.commit()
 
-        resp = jsonify({"PBEmailListing":{"emailId":emailListing.emailId,"emailAddress":emailListing.emailAddress}})
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.status_code = 200
+    #     resp = jsonify({"PBEmailListing":{"emailId":emailListing.emailId,"emailAddress":emailListing.emailAddress}})
+    #     resp.headers['Access-Control-Allow-Origin'] = '*'
+    #     resp.status_code = 200
 
     return resp
 
