@@ -68,17 +68,15 @@ class PbIphonePushToken(db.Model):
         self.iphonePushToken = iphonePushToken
         self.dateAdded = dateAdded
 
-class PbAmbassadorActivity(db.Model):
-    activityId = db.Column(db.Integer, primary_key=True)
+class PbAmbassadorMusicActivity(db.Model):
+    musicActivityId = db.Column(db.Integer, primary_key=True)
     uid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
-    itemId = db.Column(db.Integer)
-    itemType = db.Column(db.String(16))     # e.g., "music", "places"
+    musicItemId = db.Column(db.Integer, db.ForeignKey("pb_music_item.musicItemId"))
     dateAdded = db.Column(db.DateTime)
 
-    def __init__(self, uid, itemId, itemType, dateAdded):
+    def __init__(self, uid, musicItemId, dateAdded):
         self.uid = uid
-        self.itemId = itemId
-        self.itemType = itemType
+        self.musicItemId = musicItemId
         self.dateAdded = dateAdded
 
 class PbMusicItem(db.Model):
@@ -87,7 +85,7 @@ class PbMusicItem(db.Model):
     songTitle = db.Column(db.String(64))
     albumTitle = db.Column(db.String(64))
     albumYear = db.Column(db.Integer)
-    spotifyUrl = db.Column(db.String(64))
+    spotifyUrl = db.Column(db.String(64), unique=True)
     songDuration = db.Column(db.Float)
 
     def __init__(self, artistName, songTitle, albumTitle, albumYear, spotifyUrl, songDuration):
@@ -98,17 +96,15 @@ class PbMusicItem(db.Model):
         self.spotifyUrl = spotifyUrl
         self.songDuration = songDuration
 
-class PbNews(db.Model):
-    newsId = db.Column(db.Integer, primary_key=True)
-    activityId = db.Column(db.Integer, db.ForeignKey("pb_ambassador_activity.activityId"))
+class PbMusicTodo(db.Model):
+    musicNewsId = db.Column(db.Integer, primary_key=True)
+    musicActivityId = db.Column(db.Integer, db.ForeignKey("pb_ambassador_music_activity.musicActivityId"))
     followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
-    actionType = db.Column(db.String(16))   # e.g., "like", "todo"
     dateAdded = db.Column(db.DateTime)
 
-    def __init__(self, activityId, followerUid, actionType, dateAdded):
-        self.activityId = activityId
+    def __init__(self, musicActivityId, followerUid, dateAdded):
+        self.musicActivityId = musicActivityId
         self.followerUid = followerUid
-        self.actionType = actionType
         self.dateAdded = dateAdded
 
 class PbEmailListing(db.Model):
@@ -148,7 +144,6 @@ def addUser():
     requestJson = request.json
     resp = getUser()
     if resp.status_code == 404:
-        resp = jsonify({})
         # user does not exist - add user
         now = datetime.datetime.now()
         dateBecamePbUser = None
