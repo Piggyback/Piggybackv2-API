@@ -297,7 +297,8 @@ def addEmailListing():
         db.session.commit()
 
         resp = jsonify({"PBEmailListing":{"emailId":emailListing.emailId,"emailAddress":emailListing.emailAddress}})
-
+        resp.status_code = 200
+        
     return resp
 
 if __name__ == "__main__":
