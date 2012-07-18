@@ -344,6 +344,7 @@ def addEmailListing():
         db.session.commit()
 
         resp = jsonify({"PBEmailListing":{"emailId":emailListing.emailId,"emailAddress":emailListing.emailAddress}})
+        resp.headers['Access-Control-Allow-Origin'] = "*"
         resp.status_code = 200
 
     return resp
