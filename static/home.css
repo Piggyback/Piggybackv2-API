@@ -116,6 +116,7 @@ html, body {
 				padding: 0;
 				position: absolute;
 				right: 0px;
+				text-align: center;
 				top: 450px;
 				width: 100%;
 
@@ -150,7 +151,9 @@ html, body {
 			#submit-email-button {
 				font-size: 1.2em;
 				font-weight: bold;
+				height: auto;
 				margin-left: 3px;
+				padding: 4px 10px 4px 10px;
 				position: relative;
 				text-shadow: 0 -1px 0px rgba(0, 0, 0, .5);
 				width: 150px;
@@ -180,11 +183,12 @@ html, body {
 							padding-top: 20px;
 							overflow: hidden;
 						}
-							.fb-like {
+							#social-media .fb-like {
 								left: 32px;
 								position: absolute;
 							}
-							.twitter-share-button {
+							
+							#social-media .twitter-share-button {
 								position: absolute;
 								right: 32px;
 							}
@@ -194,7 +198,6 @@ html, body {
 							padding: 30px;
 						}
 
-	}
 
 	footer {
 		background: #4f4f4f;
@@ -205,13 +208,7 @@ html, body {
 		margin: 0;
 		padding: 0;
 		position: fixed;
-		width: 100%;
-
-		
-
-		
-
-		
+		width: 100%;		
 	}
 
 		.left {
@@ -226,8 +223,6 @@ html, body {
 			padding: 12px;
 		}
 
-
-
 			.footer-link a {
 				color: white;
 				font-weight: light;
@@ -241,6 +236,3 @@ html, body {
 		font-weight: bold;
 		font-size: 0.3em;
 	}
-}
-
-
