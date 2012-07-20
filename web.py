@@ -162,9 +162,9 @@ def crossdomain(origin=None, methods=None, headers=None,
         return update_wrapper(wrapped_function, f)
     return decorator
 
-@app.route("/")
+@app.route("/", methods = ['GET'])
 def index():
-    return 'hello world.'
+    return render_template('home.html')
 
 # User API
 @app.route("/user", methods = ['GET'])
