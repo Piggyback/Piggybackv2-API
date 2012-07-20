@@ -25,26 +25,32 @@ function initValidateEmailForm() {
 		var email = $.trim($('#email-input').val());
 		var comment = "";
 
-		$('.carousel').carousel('next');
-		$('.carousel').carousel('pause');
-		// testing
-		submitEmail();
+		if(email.length == 0) {
+			// nice try. we only take email addresses that aren't empty.
+			comment = "Nice try! It appears that your email is invisible.";
+		} else if(validateEmail(email)) {
+			// email is valid
+			submitEmail();
+			$('.carousel').carousel('next');
+			$('.carousel').carousel('pause');
+		} else {
+			// email is invalid
+			var r = Math.floor(Math.random() * 3) + 1;
+			switch(r) {
+				case 1:
+					comment = "Almost! Try adding a \"@\" somewhere in there.";
+					break;
+				case 2:
+					comment = "Sorry, but it's got to be an email address.";
+					break;
+				case 3:
+					comment = "Oops, doesn't seem that is a proper email."
+					break;
+			}
+		}
 
-		// if(email.length == 0) {
-		// 	// nice try. we only take email addresses that aren't empty.
-		// 	comment = "<p>Nice try! But we are looking for an email address.</p>";
-		// } else if(validateEmail(email)) {
-		// 	// email is valid
-		// 	submitEmail();
-		// 	$('.carousel').carousel('next');
-		// 	$('.carousel').carousel('pause');
-		// } else {
-		// 	// email is invalid
-		// 	comment = "<p>Almost! Try adding a \"@\" somewhere in there.</p>";
-		// }
-
-		// // update the comment div
-		// $('#form-invalidate-comment').html(comment);	// reset the comment div
+		// update the comment div
+		$('#form-invalidate-comment').html("<p>" + comment + "</p>");	// reset the comment div
 	})
 }
 
@@ -90,34 +96,4 @@ function submitEmail() {
 			console.log('.complete');
 		}
 	});
-
-	// crossDomainPost(email);
-
 }
-
-// function crossDomainPost(email) {
-// 	// Add the iframe with a unique name
-// 	var iframe = document.createElement("iframe");
-// 	var uniqueString = "piggybackEmailPost";
-// 	document.body.appendChild(iframe);
-// 	iframe.style.display = "none";
-// 	iframe.contentWindow.name = uniqueString;
-// 	$('iframe').attr('id', uniqueString);
-
-// 	// construct a form with hidden inputs, targeting the iframe
-// 	var form = document.createElement("form");
-// 	form.target = uniqueString;
-// 	form.action = "http://piggybackv2.herokuapp.com/addEmailListing";
-// 	form.method = "POST";
-
-
-// 	// repeat for each parameter
-// 	var input = document.createElement("input");
-// 	input.type = "hidden";
-// 	input.name = "emailAddress";
-// 	input.value = email;
-// 	form.appendChild(input);
-
-// 	document.body.appendChild(form);
-// 	form.submit();
-// }
