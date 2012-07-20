@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Piggyback!</title>
+		
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='bootstrap.css') }}" >
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='home.css') }}" >
+
+		<script type=text/javascript src="{{ url_for('static', filename='jquery-1.7.1.min.js') }}"></script>
+		<script type=text/javascript src="{{ url_for('static', filename='bootstrap.js') }}"></script>
+		<script type=text/javascript src="{{ url_for('static', filename='home.js') }}"></script>
+	</head>
+	<body>
+		{% include "splash.html" %}
+	</body>
+</html>
+
