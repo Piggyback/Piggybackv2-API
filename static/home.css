@@ -201,6 +201,7 @@ html, body {
 
 	footer {
 		background: #4f4f4f;
+		background-image: url('images/broken_noise.png');
 		bottom: 0px;
 		color: white;
 		height: 40px;
