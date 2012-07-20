@@ -72,7 +72,7 @@ function submitEmail() {
 
 	$.ajax({
 		type: "POST",
-		url: "http://localhost:5000/addEmailListing",
+		url: "http://piggybackv2.herokuapp.com/addEmailListing",
 		data: '{ "emailAddress" : "' + email + '" }',
 		dataType: "json",
 		contentType: "application/json",
