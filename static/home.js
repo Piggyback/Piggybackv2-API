@@ -28,7 +28,7 @@ function initValidateEmailForm() {
 		$('.carousel').carousel('next');
 		$('.carousel').carousel('pause');
 		// testing
-		// submitEmail();
+		submitEmail();
 
 		// if(email.length == 0) {
 		// 	// nice try. we only take email addresses that aren't empty.
@@ -70,18 +70,10 @@ function initModifyEnterSubmit() {
 function submitEmail() {
 	var email = $('#email-input').val();
 
-	data = {
-		"emailAddress" : email
-	}
-
-	// $.post("http://piggybackv2.herokuapp.com/addEmailListing", { emailAddress : "hi@hi" }, function(data) {
-	// 	console.log(data);
-	// }, "json");
-
 	$.ajax({
 		type: "POST",
-		url: "http://10.0.4.187:5000/addEmailListing",
-		data: '{ "emailAddress" : "hi@test" }',
+		url: "http://localhost:5000/addEmailListing",
+		data: '{ "emailAddress" : "' + email + '" }',
 		dataType: "json",
 		contentType: "application/json",
 		success: function(data, textStatus, xhr) {
