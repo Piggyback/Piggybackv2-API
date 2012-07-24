@@ -217,9 +217,9 @@ def crossdomain(origin=None, methods=None, headers=None,
         return update_wrapper(wrapped_function, f)
     return decorator
 
-@app.route("/", methods = ['GET'])
+@app.route("/")
 def index():
-    return render_template('home.html')
+    return 'hello world.'
 
 # User API
 @app.route("/user", methods = ['GET'])
@@ -372,6 +372,7 @@ def addMusicItem():
 
     return resp
 
+<<<<<<< HEAD
 # News Feed
 @app.route("/news", methods = ['GET'])
 def getNews():
@@ -420,9 +421,7 @@ def getNews():
 
     # resp = jsonify({"data":firstMusicActivity.musicItem.artistName})
     resp = jsonify(result)
-
-    return resp
-
+=======
 @app.route("/addMusicActivity", methods = ['POST'])
 def addMusicActivity():
     requestJson = request.json
@@ -501,6 +500,7 @@ def addPlacesActivity():
 
     resp = jsonify({"PBPlacesActivity":{"placesActivityId":placesActivity.placesActivityId,"dateAdded":placesActivity.dateAdded.strftime("%Y-%m-%d %H:%M:%S")}})
     resp.status_code = 200
+>>>>>>> e179ed03d15ac3329947f9793128f9590d8fa250
 
     return resp
 
@@ -522,8 +522,6 @@ def getEmailListing():
 @app.route("/addEmailListing", methods = ['POST'])
 @crossdomain(origin='*')
 def addEmailListing():
-    # resp = jsonify({})
-
     requestJson = request.json
     resp = getEmailListing() 
     if resp.status_code == 404:
@@ -541,7 +539,7 @@ def addEmailListing():
 
 @app.route("/splash", methods = ['GET'])
 def showSplash():
-    return render_template('home.html')
+    return render_template('splash.html')
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
