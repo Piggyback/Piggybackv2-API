@@ -4,6 +4,10 @@ import datetime
 from flask import Flask, render_template, redirect, url_for, request, Response, jsonify
 from flaskext.sqlalchemy import SQLAlchemy
 from apns import APNs, Payload
+from datetime import timedelta
+from flask import make_response, request, current_app
+from functools import update_wrapper
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 
@@ -86,17 +90,19 @@ class PbMusicItem(db.Model):
     musicItemId = db.Column(db.Integer, primary_key=True)
     artistName = db.Column(db.String(64))
     songTitle = db.Column(db.String(64))
-    albumTitle = db.Column(db.String(32))
+    albumTitle = db.Column(db.String(64))
     albumYear = db.Column(db.Integer)
     spotifyUrl = db.Column(db.String(64), unique=True)
+    songDuration = db.Column(db.Float)
     inMusicAcitivity = db.relationship('PbMusicActivity', backref='musicItem', lazy='select')
 
-    def __init__(self, artistName, songTitle, albumTitle, albumYear, spotifyUrl):
+    def __init__(self, artistName, songTitle, albumTitle, albumYear, spotifyUrl, songDuration):
         self.artistName = artistName
         self.songTitle = songTitle
         self.albumTitle = albumTitle
         self.albumYear = albumYear
         self.spotifyUrl = spotifyUrl
+        self.songDuration = songDuration
 
 class PbMusicTodo(db.Model):
     musicTodoId = db.Column(db.Integer, primary_key=True)
@@ -108,6 +114,57 @@ class PbMusicTodo(db.Model):
         self.musicActivityId = musicActivityId
         self.followerUid = followerUid
         self.dateAdded = dateAdded
+
+class PbEmailListing(db.Model):
+    emailId = db.Column(db.Integer, primary_key=True)
+    emailAddress = db.Column(db.String, unique=True)
+    dateAdded = db.Column(db.DateTime)
+
+    def __init__(self, emailAddress, dateAdded):
+        self.emailAddress = emailAddress
+        self.dateAdded = dateAdded
+
+# to allow cross domain requests
+def crossdomain(origin=None, methods=None, headers=None,
+                max_age=21600, attach_to_all=True,
+                automatic_options=True):
+    if methods is not None:
+        methods = ', '.join(sorted(x.upper() for x in methods))
+    if headers is not None and not isinstance(headers, basestring):
+        headers = ', '.join(x.upper() for x in headers)
+    if not isinstance(origin, basestring):
+        origin = ', '.join(origin)
+    if isinstance(max_age, timedelta):
+        max_age = max_age.total_seconds()
+
+    def get_methods():
+        if methods is not None:
+            return methods
+
+        options_resp = current_app.make_default_options_response()
+        return options_resp.headers['allow']
+
+    def decorator(f):
+        def wrapped_function(*args, **kwargs):
+            if automatic_options and request.method == 'OPTIONS':
+                resp = current_app.make_default_options_response()
+            else:
+                resp = make_response(f(*args, **kwargs))
+            if not attach_to_all and request.method != 'OPTIONS':
+                return resp
+
+            h = resp.headers
+
+            h['Access-Control-Allow-Origin'] = origin
+            h['Access-Control-Allow-Methods'] = get_methods()
+            h['Access-Control-Max-Age'] = str(max_age)
+            if headers is not None:
+                h['Access-Control-Allow-Headers'] = headers
+            return resp
+
+        f.provide_automatic_options = False
+        return update_wrapper(wrapped_function, f)
+    return decorator
 
 @app.route("/")
 def index():
@@ -226,7 +283,7 @@ def pushNotif():
 @app.route("/musicItem", methods = ['GET'])
 def getMusicItem():
     requestJson = request.json
-    musicItem = PbMusicItem.query.filter_by(musicItemId=requestJson.get('musicItemId')).first()
+    musicItem = PbMusicItem.query.filter_by(spotifyUrl=requestJson.get('spotifyUrl')).first()
     resp = None
     if musicItem == None:
         resp = jsonify({'error':'MusicItem does not exist'})
@@ -237,7 +294,9 @@ def getMusicItem():
                         "songTitle":musicItem.songTitle, 
                         "albumTitle":musicItem.albumTitle, 
                         "albumYear":musicItem.albumYear, 
-                        "spotifyUrl":musicItem.spotifyUrl}})
+                        "spotifyUrl":musicItem.spotifyUrl, 
+                        "songDuration":musicItem.songDuration}})
+
         resp.status_code = 200
 
     return resp
@@ -248,8 +307,12 @@ def addMusicItem():
     resp = getMusicItem()
     if resp.status_code == 404:
         # musicItem does not exist - add it
-        now = datetime.datetime.now()
-        musicItem = PbMusicItem(requestJson.get('artistName'), requestJson.get('songTitle'), requestJson.get('albumTitle'), requestJson.get('albumYear'), requestJson.get('spotifyUrl'))
+        musicItem = PbMusicItem(requestJson.get('artistName'), 
+                                requestJson.get('songTitle'), 
+                                requestJson.get('albumTitle'), 
+                                requestJson.get('albumYear'), 
+                                requestJson.get('spotifyUrl'),
+                                requestJson.get('songDuration'))
         db.session.add(musicItem)
         db.session.commit()
 
@@ -306,6 +369,37 @@ def getNews():
 
     # resp = jsonify({"data":firstMusicActivity.musicItem.artistName})
     resp = jsonify(result)
+
+    return resp
+
+# emailListing API
+@app.route("/emailListing", methods = ['GET'])
+def getEmailListing():
+    requestJson = request.json
+    emailListing = PbEmailListing.query.filter_by(emailAddress=requestJson.get('emailAddress')).first()
+    if emailListing == None:
+        resp = jsonify({})
+        resp.status_code = 404
+    else:
+        resp = jsonify({"PBEmailListing":{"emailId":emailListing.emailId,"emailAddress":emailListing.emailAddress}})
+        resp.status_code = 200
+
+    return resp
+
+@app.route("/addEmailListing", methods = ['POST'])
+@crossdomain(origin='*')
+def addEmailListing():
+    requestJson = request.json
+    resp = getEmailListing() 
+    if resp.status_code == 404:
+        # email does not exist - add it
+        now = datetime.datetime.now()
+        emailListing = PbEmailListing(requestJson.get('emailAddress'),now)
+        db.session.add(emailListing)
+        db.session.commit()
+
+        resp = jsonify({"PBEmailListing":{"emailId":emailListing.emailId,"emailAddress":emailListing.emailAddress}})
+        resp.status_code = 200
 
     return resp
 
