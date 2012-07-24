@@ -1,0 +1,16 @@
+html, body {
+	/* background-image: url('fabric_plaid.png'); */
+	font-family: helvetica, sans-serif;
+	margin: 0;
+	min-height: 100%;
+	min-width: 100%;
+	padding: 0;
+	text-align: center;
+}
+
+
+#post {
+	background-color: grey;
+	height: 200px;
+	width: 400px;
+}

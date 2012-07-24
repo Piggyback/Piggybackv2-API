@@ -1,17 +1,14 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-</head>
-<body>
+
+
 <div id="home">
 	<div id="container">
 		<div id="main-mask">
 			<div id="main" class="carousel slide">
 				<div class="active item">
-					<%= image_tag('piggyback-places-notes.png', :id => "piggyback-places-notes", :class=>"none notes") %>
-					<%= image_tag('piggyback-music-notes.png', :id => "piggyback-music-notes", :class=>"none notes") %>
-					<%= image_tag('piggyback-video-notes.png', :id => "piggyback-video-notes", :class=>"none notes") %>
-					<%= image_tag('piggyback-typography-splash-4.png', :id => "piggyback-typography-splash") %>
+					<img src="../static/images/piggyback-places-notes.png" id="piggyback-places-notes" class="none notes" />
+					<img src="../static/images/piggyback-music-notes.png" id="piggyback-music-notes" class="none notes" />
+					<img src="../static/images/piggyback-video-notes.png" id="piggyback-video-notes" class="none notes" />
+					<img src="../static/images/piggyback-typography-splash-4.png" id="piggyback-typography-splash" />
 					<div id="places" class="show-notes">
 					</div>
 					<div id="music" class="show-notes">
@@ -26,7 +23,7 @@
 					</a>
 				</div>
 				<div class="item">
-					<%= image_tag('piggyback-typography-splash-next.png') %>
+					<img src="../static/images/piggyback-typography-splash-next.png" />
 					<article>
 						<p><b>We're still tinkering around</b> to figure out the easiest and most convenient way for you to find out what your friends are up to.<br/><br/>
 						Don't worry, you'll be the first to know when we're ready.</p>
@@ -35,20 +32,19 @@
 						<input id="email-input" name="emailAddress" type="text" placeholder="you@coolperson.com">
 						<div id="submit-email-button" class="btn btn-primary btn-text">
 							Let me know!
-							<!-- <input id="form-submit" type="submit"> -->
 						</div>
 						<div id="form-invalidate-comment">
 						</div>
 					</form>
 				</div>
 				<div class="item">
-					<%= image_tag('piggyback-typography-splash-last.png') %>
+					<img src="../static/images/piggyback-typography-splash-last.png" />
 					<article>
 						<p><b>We have added you to our mailing list</b> and we pinky promise that we haven't already sold it to some big corporation.<br/><br/>
 							Don't be shy&mdash;share with your friends that you were one of the first few to hear about us!
 						</p>
 						<div id="social-media">
-							<div class="fb-like" data-href="http://www.facebook.com/piggybackapp" data-send="false" data-width="230" data-show-faces="true" data-colorscheme="light" data-action="like" data-font="tahoma">
+							<div class="fb-like left" data-href="http://www.facebook.com/piggybackapp" data-send="false" data-width="230" data-show-faces="true" data-colorscheme="light" data-action="like" data-font="tahoma">
 							</div>
 			                <a href="https://twitter.com/share" class="twitter-share-button" data-via="piggyback" data-lang="en" data-count="vertical">Tweet</a>
 
@@ -67,7 +63,7 @@
 					          }(document, 'script', 'facebook-jssdk')); 
 					        </script>
 					    </div>
-					    <%= image_tag('piggyback-icon-300.png', :id=>'icon-300') %>
+					    <img src="../static/images/piggyback-icon-300.png" id="icon-300" />
 					</article>
 				</div>
 			</div>
@@ -80,5 +76,3 @@
 		</div>
 	</footer>
 </div>
-</body>
-</html>

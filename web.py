@@ -213,9 +213,9 @@ def crossdomain(origin=None, methods=None, headers=None,
         return update_wrapper(wrapped_function, f)
     return decorator
 
-@app.route("/")
+@app.route("/", methods = ['GET'])
 def index():
-    return 'hello world.'
+    return render_template('home.html')
 
 # User API
 @app.route("/user", methods = ['GET'])
@@ -467,6 +467,8 @@ def getEmailListing():
 @app.route("/addEmailListing", methods = ['POST'])
 @crossdomain(origin='*')
 def addEmailListing():
+    # resp = jsonify({})
+
     requestJson = request.json
     resp = getEmailListing() 
     if resp.status_code == 404:
@@ -484,7 +486,7 @@ def addEmailListing():
 
 @app.route("/splash", methods = ['GET'])
 def showSplash():
-    return render_template('splash.html')
+    return render_template('home.html')
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
