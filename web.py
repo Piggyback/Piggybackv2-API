@@ -100,6 +100,19 @@ class PbMusicItem(db.Model):
         self.spotifyUrl = spotifyUrl
         self.songDuration = songDuration
 
+class PbMusicActivity(db.Model):
+    musicActivityId = db.Column(db.Integer, primary_key=True)
+    uid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
+    musicItemId = db.Column(db.Integer, db.ForeignKey("pb_music_item.musicItemId"))
+    musicActivityType = db.Column(db.String(32))
+    dateAdded = db.Column(db.DateTime)
+
+    def __init__(self, uid, musicItemId, musicActivityType, dateAdded):
+        self.uid = uid
+        self.musicItemId = musicItemId
+        self.musicActivityType = musicActivityType
+        self.dateAdded = dateAdded
+
 class PbMusicTodo(db.Model):
     musicNewsId = db.Column(db.Integer, primary_key=True)
     musicActivityId = db.Column(db.Integer, db.ForeignKey("pb_ambassador_music_activity.musicActivityId"))
@@ -109,6 +122,44 @@ class PbMusicTodo(db.Model):
     def __init__(self, musicActivityId, followerUid, dateAdded):
         self.musicActivityId = musicActivityId
         self.followerUid = followerUid
+        self.dateAdded = dateAdded
+
+class PbPlacesItem(db.Model):
+    placesItemId = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64))
+    phone = db.Column(db.String(32))
+    addr = db.Column(db.String(128))
+    addrCity = db.Column(db.String(64))
+    addrState = db.Column(db.String(32))
+    addrCountry = db.Column(db.String(64))
+    addrZip = db.Column(db.String(16))
+    foursquareReferenceId = db.Column(db.String(32))
+    lat = db.Column(db.Float)
+    lng = db.Column(db.Float)
+
+    def __init__(self, name, phone, addr, addrCity, addrState, addrCountry, addrZip, foursquareReferenceId, lat, lng):
+        self.name = name
+        self.phone = phone
+        self.addr = addr
+        self.addrCity = addrCity
+        self.addrState = addrState
+        self.addrCountry = addrCountry
+        self.addrZip = addrZip
+        self.foursquareReferenceId = foursquareReferenceId
+        self.lat = lat
+        self.lng = lng
+
+class PbPlacesActivity(db.Model):
+    placesActivityId = db.Column(db.Integer, primary_key=True)
+    uid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
+    placesItemId = db.Column(db.Integer, db.ForeignKey("pb_places_item.placesItemId"))
+    placesActivityType = db.Column(db.String(32))
+    dateAdded = db.Column(db.DateTime)
+
+    def __init__(self, uid, placesItemId, placesActivityType, dateAdded):
+        self.uid = uid
+        self.placesItemId = placesItemId
+        self.placesActivityType = placesActivityType
         self.dateAdded = dateAdded
 
 class PbEmailListing(db.Model):
@@ -314,6 +365,87 @@ def addMusicItem():
 
         resp = jsonify({"PBMusicItem":{"musicItemId":musicItem.musicItemId}})
         resp.status_code = 200
+
+    return resp
+
+@app.route("/addMusicActivity", methods = ['POST'])
+def addMusicActivity():
+    requestJson = request.json
+    now = datetime.datetime.now()
+    musicActivity = PbMusicActivity(requestJson.get('uid'),
+                                    requestJson.get('musicItemId'),
+                                    requestJson.get('musicActivityType'),
+                                    now)
+    db.session.add(musicActivity)
+    db.session.commit()
+
+    resp = jsonify({"PBMusicActivity":{"musicActivityId":musicActivity.musicActivityId,"dateAdded":musicActivity.dateAdded.strftime("%Y-%m-%d %H:%M:%S")}})
+    resp.status_code = 200
+
+    return resp
+
+# placesItem API
+@app.route("/placesItem", methods = ['GET'])
+def getPlacesItem():
+    requestJson = request.json
+    placesItem = PbPlacesItem.query.filter_by(foursquareReferenceId=requestJson.get('foursquareReferenceId')).first()
+    resp = None
+    if placesItem == None:
+        resp = jsonify({'error':'PlacesItem does not exist'})
+        resp.status_code = 404
+    else:
+        resp = jsonify({"PBPlacesItem":{"placesItemId":placesItem.placesItemId, 
+                        "name":placesItem.name, 
+                        "phone":placesItem.phone, 
+                        "addr":placesItem.addr, 
+                        "addrCity":placesItem.addrCity, 
+                        "addrState":placesItem.addrState, 
+                        "addrCountry":placesItem.addrCountry,
+                        "addrZip":placesItem.addrZip,
+                        "foursquareReferenceId":placesItem.foursquareReferenceId,
+                        "lat":placesItem.lat,
+                        "lng":placesItem.lng}})
+        
+        resp.status_code = 200
+
+    return resp
+
+@app.route("/addPlacesItem", methods = ['POST'])
+def addPlacesItem():
+    requestJson = request.json
+    resp = getPlacesItem()
+    if resp.status_code == 404:
+        placesItem = PbPlacesItem(requestJson.get('name'),
+                                    requestJson.get('phone'),
+                                    requestJson.get('addr'),
+                                    requestJson.get('addrCity'),
+                                    requestJson.get('addrState'),
+                                    requestJson.get('addrCountry'),
+                                    requestJson.get('addrZip'),
+                                    requestJson.get('foursquareReferenceId'),
+                                    requestJson.get('lat'),
+                                    requestJson.get('lng'))
+        db.session.add(placesItem)
+        db.session.commit()
+
+        resp = jsonify({"PBPlacesItem":{"placesItemId":placesItem.placesItemId}})
+        resp.status_code = 200
+
+    return resp
+
+@app.route("/addPlacesActivity", methods = ['POST'])
+def addPlacesActivity():
+    requestJson = request.json
+    now = datetime.datetime.now()
+    placesActivity = PbPlacesActivity(requestJson.get('uid'),
+                                    requestJson.get('placesItemId'),
+                                    requestJson.get('placesActivityType'),
+                                    now)
+    db.session.add(placesActivity)
+    db.session.commit()
+
+    resp = jsonify({"PBPlacesActivity":{"placesActivityId":placesActivity.placesActivityId,"dateAdded":placesActivity.dateAdded.strftime("%Y-%m-%d %H:%M:%S")}})
+    resp.status_code = 200
 
     return resp
 
