@@ -78,12 +78,14 @@ class PbMusicActivity(db.Model):
     musicActivityId = db.Column(db.Integer, primary_key=True)
     uid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
     musicItemId = db.Column(db.Integer, db.ForeignKey("pb_music_item.musicItemId"))
+    musicActivityType = db.Column(db.String(32))
     dateAdded = db.Column(db.DateTime)
     todos = db.relationship('PbMusicTodo', backref='musicActivity', lazy='select')
 
-    def __init__(self, uid, musicItemId, dateAdded):
+    def __init__(self, uid, musicItemId, musicActivityType, dateAdded):
         self.uid = uid
         self.musicItemId = musicItemId
+        self.musicActivityType = musicActivityType
         self.dateAdded = dateAdded
 
 class PbMusicItem(db.Model):
@@ -103,19 +105,6 @@ class PbMusicItem(db.Model):
         self.albumYear = albumYear
         self.spotifyUrl = spotifyUrl
         self.songDuration = songDuration
-
-class PbMusicActivity(db.Model):
-    musicActivityId = db.Column(db.Integer, primary_key=True)
-    uid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
-    musicItemId = db.Column(db.Integer, db.ForeignKey("pb_music_item.musicItemId"))
-    musicActivityType = db.Column(db.String(32))
-    dateAdded = db.Column(db.DateTime)
-
-    def __init__(self, uid, musicItemId, musicActivityType, dateAdded):
-        self.uid = uid
-        self.musicItemId = musicItemId
-        self.musicActivityType = musicActivityType
-        self.dateAdded = dateAdded
 
 class PbMusicTodo(db.Model):
     musicTodoId = db.Column(db.Integer, primary_key=True)
@@ -140,8 +129,9 @@ class PbPlacesItem(db.Model):
     foursquareReferenceId = db.Column(db.String(32))
     lat = db.Column(db.Float)
     lng = db.Column(db.Float)
+    photoURL = db.Column(db.String(256))
 
-    def __init__(self, name, phone, addr, addrCity, addrState, addrCountry, addrZip, foursquareReferenceId, lat, lng):
+    def __init__(self, name, phone, addr, addrCity, addrState, addrCountry, addrZip, foursquareReferenceId, lat, lng, photoURL):
         self.name = name
         self.phone = phone
         self.addr = addr
@@ -152,6 +142,7 @@ class PbPlacesItem(db.Model):
         self.foursquareReferenceId = foursquareReferenceId
         self.lat = lat
         self.lng = lng
+        self.photoURL = photoURL
 
 class PbPlacesActivity(db.Model):
     placesActivityId = db.Column(db.Integer, primary_key=True)
@@ -164,6 +155,28 @@ class PbPlacesActivity(db.Model):
         self.uid = uid
         self.placesItemId = placesItemId
         self.placesActivityType = placesActivityType
+        self.dateAdded = dateAdded
+
+class PbVideosItem(db.Model):
+    videosItemId = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128))
+    videoURL = db.Column(db.String(256))
+
+    def __init__(self, name, videoURL):
+        self.name = name
+        self.videoURL = videoURL
+
+class PbVideosActivity(db.Model):
+    videosActivityId = db.Column(db.Integer, primary_key=True)
+    uid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
+    videosItemId = db.Column(db.Integer, db.ForeignKey("pb_videos_item.videosItemId"))
+    videosActivityType = db.Column(db.String(32))
+    dateAdded = db.Column(db.DateTime)
+
+    def __init__(self, uid, videosItemId, videosActivityType, dateAdded):
+        self.uid = uid
+        self.videosItemId = videosItemId
+        self.videosActivityType = videosActivityType
         self.dateAdded = dateAdded
 
 class PbEmailListing(db.Model):
@@ -459,7 +472,8 @@ def getPlacesItem():
                         "addrZip":placesItem.addrZip,
                         "foursquareReferenceId":placesItem.foursquareReferenceId,
                         "lat":placesItem.lat,
-                        "lng":placesItem.lng}})
+                        "lng":placesItem.lng,
+                        "photoURL":placesItem.photoURL}})
         
         resp.status_code = 200
 
@@ -479,7 +493,8 @@ def addPlacesItem():
                                     requestJson.get('addrZip'),
                                     requestJson.get('foursquareReferenceId'),
                                     requestJson.get('lat'),
-                                    requestJson.get('lng'))
+                                    requestJson.get('lng'),
+                                    requestJson.get('photoURL'))
         db.session.add(placesItem)
         db.session.commit()
 
@@ -501,6 +516,55 @@ def addPlacesActivity():
 
     resp = jsonify({"PBPlacesActivity":{"placesActivityId":placesActivity.placesActivityId,"dateAdded":placesActivity.dateAdded.strftime("%Y-%m-%d %H:%M:%S")}})
     resp.status_code = 200
+
+    return resp
+
+@app.route("/addVideosActivity", methods = ['POST'])
+def addVideosActivity():
+    requestJson = request.json
+    now = datetime.datetime.now()
+    videosActivity = PbVideosActivity(requestJson.get('uid'),
+                                        requestJson.get('videosItemId'),
+                                        requestJson.get('videosActivityType').
+                                        now)
+    db.session.add(videosActivity)
+    db.session.commit()
+
+    resp = jsonify({"PBVideosActivity":{"videosActivityId":videosActivity.videosActivityId,"dateAdded":videosActivity.dateAdded.strftime("%Y-%m-%d %H:%M:%S")}})
+    resp.status_code = 200
+
+    return resp
+
+# videosItem API
+@app.route("/videosItem", methods = ['GET'])
+def getVideosItem():
+    requestJson = request.json
+    videosItem = PbVideosItem.query.filter_by(videoURL=requestJson.get('videoURL')).first()
+    resp = None
+    if videosItem == None:
+        resp = jsonify({'error':'PlacesItem does not exist'})
+        resp.status_code = 404
+    else:
+        resp = jsonify({"PBVideosItem":{"videosItemId":videosItem.videosItemId,
+                                        "name":videosItem.name,
+                                        "videoURL":videosItem.videoURL}})
+
+        resp.status_code = 200
+
+    return resp
+    
+@app.route("/addVideosItem", methods = ['POST'])
+def addVideosItem():
+    requestJson = request.json
+    resp = getVideosItem()
+    if resp.status_code == 404:
+        videosItem = PbVideosItem(requestJson.get('name'),
+                                    requestJson.get('videoURL'))
+        db.session.add(videosItem)
+        db.session.commit()
+
+        resp = jsonify({"PBVideosItem":{"videosItemId":videosItem.videosItemId}})
+        resp.status_code = 200
 
     return resp
 
