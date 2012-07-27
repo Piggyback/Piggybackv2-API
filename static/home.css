@@ -119,8 +119,6 @@ html, body {
 				text-align: center;
 				top: 450px;
 				width: 100%;
-
-				
 			}
 
 				div.btn {
@@ -141,7 +139,6 @@ html, body {
 
 			form {
 				margin: 0px 32px 0px 32px;
-				position: absolute;
 			}
 			#email-input {
 				color: gray;
@@ -276,6 +273,25 @@ section {
 
 #health-nut.on-hover {
 	left: 857px;
+}
+
+#sign-up {
+	padding-top: 20px;
+	padding-bottom: 200px;
+}
+
+section #email-input {
+	height: 40px;
+	font-size: 1.2em;
+	padding-left: 15px;
+	width: 400px;
+}
+
+section #submit-email-button {
+	height: 27px;
+	margin-top: -5px;
+	width: 200px;
+	padding-top: 18px;
 }
 
 #next-button {

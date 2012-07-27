@@ -37,6 +37,11 @@ function initValidateEmailForm() {
 			comment = "Nice try! It appears that your email is invisible.";
 		} else if(validateEmail(email)) {
 			// email is valid
+
+			// hide div and replace it with "Great! Stay tuned for updates!"
+			$('#sign-up').html('<h3>Somewhere in the world a little bell just rang—we got your email!</h3>');
+			$('#sign-up').css('color', 'grey');
+
 			submitEmail();
 			$('.carousel').carousel('next');
 			$('.carousel').carousel('pause');
