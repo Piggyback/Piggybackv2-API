@@ -162,10 +162,6 @@ def crossdomain(origin=None, methods=None, headers=None,
         return update_wrapper(wrapped_function, f)
     return decorator
 
-@app.route("/", methods = ['GET'])
-def index():
-    return render_template('home.html')
-
 # User API
 @app.route("/user", methods = ['GET'])
 def getUser():
@@ -352,9 +348,18 @@ def addEmailListing():
 
     return resp
 
+# routing
+@app.route("/", methods = ['GET'])
+def index():
+    return render_template('home.html', route="splash" )
+
 @app.route("/splash", methods = ['GET'])
 def showSplash():
     return render_template('home.html')
+
+@app.route("/about", methods = ['GET'])
+def showAbout():
+    return render_template('home.html', route="about")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

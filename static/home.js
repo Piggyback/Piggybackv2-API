@@ -1,8 +1,15 @@
 $(document).ready( function() {
+	
+	// splash-home
 	$('.carousel').carousel('pause');
 	initShowNotes();
 	initValidateEmailForm();
 	initModifyEnterSubmit();
+
+	// about
+	initScrollNextButton();
+	initShowCharacterNotes();
+
 });
 
 function initShowNotes() {
@@ -96,4 +103,71 @@ function submitEmail() {
 			console.log('.complete');
 		}
 	});
+}
+
+
+function initShowCharacterNotes() {
+	$('.on-hover').hover(
+		function () {
+			// make every other image opacity .1
+			$('.character-img').css('opacity', '0.1');
+
+			var id = $(this).attr('id');
+			id = "#" + id + "-img";
+			
+			$(id).css('opacity', '1');
+
+			// show notes specific to target
+		},
+		function () {
+			// make all opacity the same
+			$('.character-img').css('opacity', '1');
+
+			// remove notes specific to target
+		}
+	)
+}
+
+function initScrollNextButton() {
+	$('#next-button').click(function() {
+		goToByScroll("ob-2");
+	})
+
+	$(window).scroll(function() {
+		var y = $(window).scrollTop();
+		var target = "2";
+
+		$('#next-button').removeClass('none');
+
+		switch (true) {
+			case y < 880:
+				target = "2";
+				break;
+			case y < 1610:
+				target = "3";
+				break;
+			case y < 2480:
+				target = "4";
+				break;
+			case y < 3290:
+				target = "5";
+				break;
+			case y + $(window).height() + 100 > $(document).height():
+				// change the button to redirect to the signup page?
+				$('#next-button').addClass('none');
+				break;
+			default:
+				target = "1";
+				break;
+		}
+
+		$('#next-button').unbind()
+						   .click(function() {
+			goToByScroll("ob-" + target);
+		})
+	})
+}
+
+function goToByScroll(id) {
+	$('html,body').animate({scrollTop: $('#'+id).offset().top + 100}, 'slow');
 }
