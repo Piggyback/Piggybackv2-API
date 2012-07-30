@@ -117,8 +117,8 @@ function initShowCharacterNotes() {
 			// make every other image opacity .1
 			$('.character-img').css('opacity', '0.1');
 
+			// cover the opacity
 			var id = "#" + $(this).attr('id');
-			
 			$(id).css('opacity', '1');
 
 			// show notes specific to target
