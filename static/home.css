@@ -346,6 +346,10 @@ section #submit-email-button {
 	-moz-border-top-right-radius: 20px;
 }
 
+#team-container {
+	margin-top: 100px;
+}
+
 #team-container section {
 	height: 250px;
 	margin: 0 auto;
