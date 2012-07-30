@@ -23,12 +23,13 @@ h1 {
 
 	#container {
 		margin: 0px;
+		height: 700px;
 		padding: 0px;
 		position: relative;
 	}
 
 		#main-mask {
-			height: 620px;
+			height: 100%;
 			margin: 0 auto;
 			overflow: hidden;
 			width: 446px;
