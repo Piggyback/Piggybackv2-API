@@ -159,16 +159,16 @@ function initScrollNextButton() {
 		$('#next-button').removeClass('none');
 
 		switch (true) {
-			case y < 880:
+			case y < 840:
 				target = "2";
 				break;
-			case y < 1610:
+			case y < 1640:
 				target = "3";
 				break;
-			case y < 2480:
+			case y < 2440:
 				target = "4";
 				break;
-			case y < 3290:
+			case y < 3240:
 				target = "5";
 				break;
 			case y + $(window).height() + 100 > $(document).height():
@@ -179,6 +179,7 @@ function initScrollNextButton() {
 				target = "1";
 				break;
 		}
+		console.log(y);
 
 		$('#next-button').unbind()
 						   .click(function() {
@@ -188,5 +189,5 @@ function initScrollNextButton() {
 }
 
 function goToByScroll(id) {
-	$('html,body').animate({scrollTop: $('#'+id).offset().top + 100}, 'slow');
+	$('html,body').animate({scrollTop: $('#'+id).offset().top + 50}, 'slow');
 }

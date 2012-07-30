@@ -12,6 +12,7 @@
 		<script type=text/javascript src="{{ url_for('static', filename='home.js') }}"></script>
 	</head>
 	<body>
+		{% include "header.html" %}
 		{% if route == "splash" %}
 			{% include "splash.html" %}
 		{% elif route == "about" %}

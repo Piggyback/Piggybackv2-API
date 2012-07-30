@@ -38,7 +38,7 @@ h1 {
 				background: white;
 				height: 550px;
 				margin: 0 auto;
-				margin-top: 50px;
+				margin-top: 100px;
 				width: 100%;
 
 				/* drop shadow */
@@ -201,17 +201,18 @@ h1 {
 						}
 
 
-	footer {
+	header {
 		background: #4f4f4f;
 		background-image: url('images/broken_noise.png');
-		bottom: 0px;
 		color: white;
 		height: 40px;
 		left: 0;
 		margin: 0;
 		padding: 0;
 		position: fixed;
-		width: 100%;		
+		top: 0px;
+		width: 100%;	
+		z-index: 10;	
 	}
 
 		.left {
@@ -223,13 +224,13 @@ h1 {
 			text-align: right;
 		}
 
-		.footer-link {
+		.header-link {
 			height: 100%;
 			padding: 12px;
 			float: left;
 		}
 
-			.footer-link a {
+			.header-link a {
 				color: white;
 				font-weight: light;
 				text-decoration: none;
@@ -300,7 +301,7 @@ section #submit-email-button {
 }
 
 #next-button {
-	bottom: 40px;
+	bottom: 0px;
 	height: 30px;
 	position: fixed;
 	right: 40px;
