@@ -16,8 +16,9 @@ h1 {
 
 
 .none {
-		left: -9999px;
-		position: absolute;
+	display: none;
+	left: -9999px;
+	position: absolute;
 }	
 
 	#container {

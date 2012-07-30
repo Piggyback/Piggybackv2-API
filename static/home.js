@@ -10,6 +10,9 @@ $(document).ready( function() {
 	initScrollNextButton();
 	initShowCharacterNotes();
 
+	// hover team page
+	initShowProfilePics();
+
 });
 
 function initShowNotes() {
@@ -128,6 +131,18 @@ function initShowCharacterNotes() {
 			$('.character-img').css('opacity', '1');
 
 			// remove notes specific to target
+		}
+	)
+}
+
+function initShowProfilePics() {
+	$('.headshot').hover(
+		function () {
+			// show real pic
+			$(this).closest('section').find('.real').removeClass('none');
+		},
+		function () {
+			$(this).closest('section').find('.real').addClass('none');
 		}
 	)
 }
