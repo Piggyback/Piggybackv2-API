@@ -264,7 +264,7 @@ h1 {
 	bottom: 0px;
 	left: 0px;
 	position: absolute;
-	z-index: 1;
+	/*z-index: 1;*/
 }
 
 #mouseover-hint {

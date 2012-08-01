@@ -119,16 +119,17 @@ function initShowCharacterNotes() {
 		function () {
 			// make every other image opacity .1
 			$('.character-img').css('opacity', '0.05');
-			$('.character-img').css('z-index', '0');
+			// $('.character-img').css('z-index', '0');
 
 			// make hover target opacity = 1
 			var id = "#" + $(this).attr('id');
 			$(id).css('opacity', '1');
-			$(id).css('z-index', '1');
+			// $(id).css('z-index', '2');
 
 			// show notes specific to target
 			id = id + "-notes";
 			$(id).removeClass("none");
+			$(id).css('z-index', '-1');
 		},
 		function () {
 			// make all opacity the same
