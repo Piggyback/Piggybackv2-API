@@ -245,7 +245,6 @@ h1 {
 		font-size: 0.3em;
 	}
 
-
 #onboarding section {
 	height: 600px;
 	padding: 100px 0px 100px 0px;
@@ -254,32 +253,18 @@ h1 {
 	width: 100%;
 }
 
-.character-img {
-	
+#character-container {
+	height: auto;
+	margin: 0 auto;
+	position: relative;
+	width: 630px;
 }
 
-/*.on-hover {
-	height: 260px;
-	left: 353px;
+.character-notes {
+	bottom: 0px;
+	left: 0px;
 	position: absolute;
-	top: 170px;
-	width: 126px;
-}*/
-
-#hipster.on-hover {
-	left: 479px;
-}
-
-#hopster.on-hover {
-	left: 605px;
-}
-
-#yuppie-banker.on-hover {
-	left: 731px;
-}
-
-#health-nut.on-hover {
-	left: 857px;
+	z-index: -1;
 }
 
 #sign-up {
