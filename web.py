@@ -78,12 +78,14 @@ class PbMusicActivity(db.Model):
     musicActivityId = db.Column(db.Integer, primary_key=True)
     uid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
     musicItemId = db.Column(db.Integer, db.ForeignKey("pb_music_item.musicItemId"))
+    musicActivityType = db.Column(db.String(32))
     dateAdded = db.Column(db.DateTime)
     todos = db.relationship('PbMusicTodo', backref='musicActivity', lazy='select')
 
-    def __init__(self, uid, musicItemId, dateAdded):
+    def __init__(self, uid, musicItemId, musicActivityType, dateAdded):
         self.uid = uid
         self.musicItemId = musicItemId
+        self.musicActivityType = musicActivityType
         self.dateAdded = dateAdded
 
 class PbMusicItem(db.Model):
@@ -104,29 +106,18 @@ class PbMusicItem(db.Model):
         self.spotifyUrl = spotifyUrl
         self.songDuration = songDuration
 
-class PbMusicActivity(db.Model):
-    musicActivityId = db.Column(db.Integer, primary_key=True)
-    uid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
-    musicItemId = db.Column(db.Integer, db.ForeignKey("pb_music_item.musicItemId"))
-    musicActivityType = db.Column(db.String(32))
-    dateAdded = db.Column(db.DateTime)
-
-    def __init__(self, uid, musicItemId, musicActivityType, dateAdded):
-        self.uid = uid
-        self.musicItemId = musicItemId
-        self.musicActivityType = musicActivityType
-        self.dateAdded = dateAdded
-
 class PbMusicTodo(db.Model):
-    musicTodoId = db.Column(db.Integer, primary_key=True)
+    musicTodoId = db.Column(db.Integer, primary_key=True)     # not necessary?
     musicActivityId = db.Column(db.Integer, db.ForeignKey("pb_music_activity.musicActivityId"))
     followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
     dateAdded = db.Column(db.DateTime)
+    status = db.Column(db.SmallInteger, default=0)      # 0=todo, 1=deleted, 2=completed
 
-    def __init__(self, musicActivityId, followerUid, dateAdded):
+    def __init__(self, musicActivityId, followerUid, dateAdded, status):
         self.musicActivityId = musicActivityId
         self.followerUid = followerUid
         self.dateAdded = dateAdded
+        self.status = status
 
 class PbPlacesItem(db.Model):
     placesItemId = db.Column(db.Integer, primary_key=True)
@@ -305,7 +296,8 @@ def addAmbassador():
 def removeAmbassador():
     # doesn't actually remove from DB, just updates flag
     requestJson = request.json
-    PbAmbassador.query.filter_by(followerUid = requestJson['followerUid'], ambassadorUid = requestJson['ambassadorUid'], ambassadorType = requestJson['ambassadorType']).update({'deleted':1})
+    PbAmbassador.query.filter_by(followerUid = requestJson['followerUid'], ambassadorUid = requestJson['ambassadorUid'], 
+        ambassadorType = requestJson['ambassadorType']).update({'deleted':1})
 
     db.session.commit()
     resp = jsonify({})
@@ -313,13 +305,53 @@ def removeAmbassador():
 
     return resp
 
+# Todo API
+@app.route("/addMusicTodo", methods = ['POST'])
+def addMusicTodo():
+    requestJson = request.json
+    now = datetime.datetime.now()
+    musicTodo = PbMusicTodo(requestJson['musicActivityId'], requestJson['followerUid'], now, 0)
+    db.session.merge(musicTodo)
+    db.session.commit()
+
+    resp = jsonify({})
+    # Send push notification to trusted friend!
+    iphonePushTokenObject = PbIphonePushToken.query.filter_by(uid=requestJson['musicActivity']['uid']).first()
+    token_hex = iphonePushTokenObject.iphonePushToken
+    if token_hex:
+        payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' saved your song "' + requestJson['musicActivity']['musicItem']['songTitle'] + '"!'
+        payload = Payload(alert=payloadMessage)
+        apns.gateway_server.send_notification(token_hex, payload)
+
+    # token_hex = "e834d8f50cfc82260533600649d592969b961fddf2ece393484ea80bebdd6d24"
+    # mike_token_hex = "6d9f47bf51e9096ad58bc02c386a6c775e90f56756147aace097713f5c95db73"
+    # payload = Payload(alert="Hey Kimbo")
+    # apns.gateway_server.send_notification(token_hex, payload)
+
+    resp = jsonify({"PBMusicTodo":{"musicTodoId":musicTodo.musicTodoId, "dateAdded":now.strftime("%Y-%m-%d %H:%M:%S")}})
+    resp.status_code = 200
+
+    return resp
+
+@app.route("/removeMusicTodo", methods = ['PUT'])
+def removeMusicTodo():
+    requestJson = request.json
+    PbMusicTodo.query.filter_by(musicActivityId = requestJson['musicActivityId'], 
+        followerUid = requestJson['followerUid']).update({'status':1})
+
+    db.session.commit()
+    resp = jsonify({})
+    resp.status_code = 200;
+
+    return resp;
+
 # Push notification
 @app.route("/addIphonePushToken", methods = ['POST'])
 def pushNotif():
     requestJson = request.json
     now = datetime.datetime.now()
     iphonePushToken = PbIphonePushToken(requestJson['uid'], requestJson['deviceToken'], now)
-    db.session.add(iphonePushToken)
+    db.session.merge(iphonePushToken)
     db.session.commit()
     # token_hex = requestJson.get('deviceToken')
     # payload = Payload(alert="hello world.")
@@ -375,13 +407,14 @@ def addMusicItem():
 # News Feed
 @app.route("/news", methods = ['GET'])
 def getNews():
-    requestJson = request.json
-    musicActivity = PbMusicActivity.query.filter_by(uid=requestJson['uid']).all()
-    result = {'musicActivity':[]}
+    musicActivity = PbMusicActivity.query.filter_by(uid=request.args['uid']).all()
+    result = {'PBMusicActivity':[]}
     i=0
     for activity in musicActivity:
-        result['musicActivity'].append({
+        result['PBMusicActivity'].append({
             'musicActivityId':activity.musicActivityId,
+            'musicActivityType':'toptrack',
+            'musicItemId':activity.musicItem.musicItemId,
             'uid':activity.uid,
             'dateAdded':activity.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
             'musicItem':
@@ -393,12 +426,15 @@ def getNews():
                 'albumYear':activity.musicItem.albumYear,
                 'spotifyUrl':activity.musicItem.spotifyUrl
             },
-            'todos':[]
+            'news':[]
         })
         for todo in activity.todos:
-            result['musicActivity'][i]['todos'].append(
+            result['PBMusicActivity'][i]['news'].append(
                 {
-                    'musicTodoId':todo.musicTodoId,
+                    'musicNewsId':todo.musicTodoId,
+                    'followerUid':todo.followerUid,
+                    'musicActivityId':activity.musicActivityId,
+                    'newsActionType':'todo',
                     'dateAdded':todo.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
                     'follower': 
                     {
@@ -418,7 +454,6 @@ def getNews():
 
         i = i+1
 
-    # resp = jsonify({"data":firstMusicActivity.musicItem.artistName})
     resp = jsonify(result)
 
     return resp
