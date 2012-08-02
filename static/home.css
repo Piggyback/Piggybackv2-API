@@ -1,0 +1,427 @@
+html, body {
+	/* background-image: url('fabric_plaid.png'); */
+	font-family: helvetica, sans-serif;
+	margin: 0;
+	min-height: 100%;
+	min-width: 100%;
+	padding: 0;
+	text-align: center;
+}
+
+h1 {
+	font-family: 'BebasRegular';
+}
+
+/* stylesheet for home */
+
+
+.none {
+	display: none;
+	left: -9999px;
+	position: absolute;
+}	
+
+	#container {
+		margin: 0px;
+		height: 700px;
+		padding: 0px;
+		position: relative;
+	}
+
+		#main-mask {
+			height: 100%;
+			margin: 0 auto;
+			overflow: hidden;
+			width: 446px;
+		}
+
+			#main {
+				background: white;
+				height: 550px;
+				margin: 0 auto;
+				margin-top: 100px;
+				width: 100%;
+
+				/* drop shadow */
+				-webkit-box-shadow: 0 0 4px rgba(0, 0, 0, 0.2), inset 0 0 50px rgba(0, 0, 0, 0.1);
+				-moz-box-shadow: 0 0 4px rgba(0, 0, 0, 0.2), inset 0 0 50px rgba(0, 0, 0, 0.1);
+				box-shadow: 0 0 5px rgba(0, 0, 0, 0.2), inset 0 0 50px rgba(0, 0, 0, 0.1);
+			}
+
+			#main:before, #main:after {
+				position: absolute;
+				width: 40%;
+				height: 10px;
+				content: ' ';
+				left: 12px;
+				bottom: 8px;
+				background: transparent;
+
+				/* paper curls drop shadow */
+				-webkit-transform: skew(-5deg) rotate(-5deg);
+				-moz-transform: skew(-5deg) rotate(-5deg);
+				-moz-transform: rotate(-5deg);
+				-ms-transform: skew(-5deg) rotate(-5deg);
+				-o-transform: skew(-5deg) rotate(-5deg);
+				transform: skew(-5deg) rotate(-5deg);
+				-webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+				-moz-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+				box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+				
+				z-index: -1;
+			}
+
+			#main:after {
+				left: auto;
+				right: 12px;
+
+				/* transform other direction */
+				-webkit-transform: skew(5deg) rotate(5deg);
+				-moz-transform: skew(5deg) rotate(5deg);
+				-moz-transform: rotate(5deg);
+				-ms-transform: skew(5deg) rotate(5deg);
+				-o-transform: skew(5deg) rotate(5deg);
+				transform: skew(5deg) rotate(5deg);
+			}
+
+			.notes {
+				position: absolute;
+				top: 208px;
+			}
+
+			#piggyback-music-notes {
+				right: 110px;
+			}
+
+			#piggyback-video-notes {
+				right: -30px;
+			}
+
+			.show-notes {
+				height: 65px;
+				position: absolute;
+				left: 35px;
+				top: 220px;
+				width: 110px;
+			}
+
+			#music {
+				left: 155px;
+			}
+
+			#video {
+				left: 305px;
+			}
+
+			#interested-button {
+				background: none;
+				border: none;
+				left: 0px;
+				margin: 0 auto;
+				opacity: 1;
+				padding: 0;
+				position: absolute;
+				right: 0px;
+				text-align: center;
+				top: 450px;
+				width: 100%;
+			}
+
+				div.btn {
+					height: 40px;
+					font-size: 0.36em;
+					padding: 22px 17px 0px 17px;
+				}
+
+			article {
+				margin: 32px;
+			}
+
+			p {
+				line-height: 1.6em;
+				margin-top: -20px;
+				text-align: left;
+			}
+
+			form {
+				margin: 0px 32px 0px 32px;
+			}
+			#email-input {
+				color: gray;
+				font-style: oblique;
+				width: 190px;
+			}
+			#submit-email-button {
+				font-size: 1.2em;
+				font-weight: bold;
+				height: auto;
+				margin-left: 3px;
+				padding: 4px 10px 4px 10px;
+				position: relative;
+				text-shadow: 0 -1px 0px rgba(0, 0, 0, .5);
+				width: 150px;
+			}
+
+				#form-submit {
+					background: transparent;
+					border: transparent;
+					color: transparent;
+					height: 100%;
+					left: 0px;
+					position: absolute;
+					top: 0px;
+					width: 100%;
+				}
+
+			#form-invalidate-comment {
+				color: red;
+				margin-top: 40px;
+				min-height: 1.3em;
+				overflow: yes;
+				text-align: left;
+			}
+
+						#social-media {
+							height: 50px;
+							padding-top: 20px;
+							overflow: hidden;
+						}
+							#social-media .fb-like {
+								left: 32px;
+								position: absolute;
+							}
+							
+							#social-media .twitter-share-button {
+								position: absolute;
+								right: 32px;
+							}
+
+						#icon-300 {
+							height: 130px;
+							padding: 30px;
+						}
+
+
+	header {
+		background: #4f4f4f;
+		background-image: url('images/broken_noise.png');
+		color: white;
+		height: 40px;
+		left: 0;
+		margin: 0;
+		padding: 0;
+		position: fixed;
+		top: 0px;
+		width: 100%;	
+		z-index: 10;	
+	}
+
+		.left {
+			text-align: left;
+		}
+		.right {
+			position: absolute;
+			right: 0px;
+			text-align: right;
+		}
+
+		.header-link {
+			height: 100%;
+			padding: 12px;
+			float: left;
+		}
+
+			.header-link a {
+				color: white;
+				font-weight: light;
+				text-decoration: none;
+			}
+
+	/* elements */
+
+	.btn-text {
+		text-shadow: /*0 1px 0px rgba(255, 255, 255, 0.7),*/ 0 -1px 0px rgba(0, 0, 0, .5);
+		font-weight: bold;
+		font-size: 0.3em;
+	}
+
+#onboarding section {
+	height: 600px;
+	padding: 100px 0px 100px 0px;
+	position: relative;
+	text-align: center;
+	width: 100%;
+}
+
+#character-container {
+	height: auto;
+	margin: 0 auto;
+	position: relative;
+	width: 630px;
+}
+
+.character-notes {
+	bottom: 0px;
+	left: 0px;
+	position: absolute;
+	/*z-index: 1;*/
+}
+
+#mouseover-hint {
+	bottom: -60px;
+	right: -200px;
+	position: absolute;
+}
+
+#sign-up {
+	padding-top: 20px;
+	padding-bottom: 200px;
+}
+
+section #email-input {
+	height: 40px;
+	font-size: 1.2em;
+	padding-left: 15px;
+	width: 400px;
+}
+
+section #submit-email-button {
+	height: 27px;
+	margin-top: -5px;
+	width: 200px;
+	padding-top: 18px;
+}
+
+#next-button {
+	bottom: 0px;
+	height: 30px;
+	position: fixed;
+	right: 40px;
+	width: 200px;
+
+	cursor: hand;
+	cursor: pointer;
+
+	color: black;
+	font-size: 1.2em;
+	font-weight: bold;
+	padding-top: 15px;
+	text-decoration: none;
+	text-shadow: 0px 1px 0px #fff;
+
+	background-color: #ffdf7f;
+	background-size: 10px 10px;
+	background-image: -webkit-gradient(linear, 0 100%, 100% 0, 
+	color-stop(.25, rgba(255, 255, 255, .2)), color-stop(.25, transparent),
+	color-stop(.5, transparent), color-stop(.5, rgba(255, 255, 255, .2)),
+	color-stop(.75, rgba(255, 255, 255, .2)), color-stop(.75, transparent),
+	to(transparent));
+	background-image: -webkit-linear-gradient(-45deg, rgba(255, 255, 255, .2) 25%, transparent 25%,
+	transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%,
+	transparent 75%, transparent);
+	background-image: -moz-linear-gradient(-45deg, rgba(255, 255, 255, .2) 25%, transparent 25%,
+	transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%,
+	transparent 75%, transparent);
+	background-image: -ms-linear-gradient(-45deg, rgba(255, 255, 255, .2) 25%, transparent 25%,
+	transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%,
+	transparent 75%, transparent);
+	background-image: -o-linear-gradient(-45deg, rgba(255, 255, 255, .2) 25%, transparent 25%,
+	transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%,
+	transparent 75%, transparent);
+	background-image: linear-gradient(-45deg, rgba(255, 255, 255, .2) 25%, transparent 25%,
+	transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%,
+	transparent 75%, transparent);
+
+	border-top-left-radius: 20px;
+	border-top-right-radius: 20px;
+	-moz-border-top-left-radius: 20px;
+	-moz-border-top-right-radius: 20px;
+}
+
+#sign-up-now-button {
+	bottom: 0px;
+	height: 30px;
+	position: fixed;
+	left: 40px;
+	width: 250px;
+
+	cursor: hand;
+	cursor: pointer;
+
+	color: white;
+	font-size: 1.2em;
+	font-weight: bold;
+	padding-top: 15px;
+	text-decoration: none;
+	text-shadow: 0px -1px 0px #000;
+
+	background: rgb(59,155,239); /* Old browsers */
+	background: -moz-linear-gradient(top,  rgba(59,155,239,1) 1%, rgba(30,105,222,1) 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(1%,rgba(59,155,239,1)), color-stop(100%,rgba(30,105,222,1))); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  rgba(59,155,239,1) 1%,rgba(30,105,222,1) 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  rgba(59,155,239,1) 1%,rgba(30,105,222,1) 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  rgba(59,155,239,1) 1%,rgba(30,105,222,1) 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  rgba(59,155,239,1) 1%,rgba(30,105,222,1) 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3b9bef', endColorstr='#1e69de',GradientType=0 ); /* IE6-9 */
+
+	border-top-left-radius: 20px;
+	border-top-right-radius: 20px;
+	-moz-border-top-left-radius: 20px;
+	-moz-border-top-right-radius: 20px;
+}
+
+#team-container {
+	margin-top: 100px;
+}
+
+#team-container section {
+	height: 250px;
+	margin: 0 auto;
+	margin-top: 100px;
+	position: relative;
+	width: 800px;
+}
+
+#team-container section:last-child {
+	margin-bottom: 200px;
+}
+
+#team-container h1 {
+	font-size: 3em;
+	margin: 1em;
+}
+
+#team-container h2, h3, h4, h5, h6 {
+	margin-bottom: .6em;
+}
+
+#team-container p {
+	margin-top: 0.4em;	
+}
+
+#team-container .headshot {
+	height: 100%;
+	left: 0px;
+	position: absolute;
+}
+
+#team-container article {
+	margin: 1em;
+	position: absolute;
+	right: 0px;
+	text-align: left;
+	width: 32em;
+}
+
+@font-face {
+    font-family: 'BebasRegular';
+    src: url('font/BEBAS___-webfont.eot');
+    src: url('font/BEBAS___-webfont.eot?#iefix') format('embedded-opentype'),
+         url('font/BEBAS___-webfont.woff') format('woff'),
+         url('font/BEBAS___-webfont.ttf') format('truetype'),
+         url('font/BEBAS___-webfont.svg#BebasRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+

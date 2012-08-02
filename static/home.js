@@ -1,8 +1,18 @@
 $(document).ready( function() {
+	
+	// splash-home
 	$('.carousel').carousel('pause');
 	initShowNotes();
 	initValidateEmailForm();
 	initModifyEnterSubmit();
+
+	// about
+	initScrollNextButton();
+	initShowCharacterNotes();
+
+	// hover team page
+	initShowProfilePics();
+
 });
 
 function initShowNotes() {
@@ -25,26 +35,37 @@ function initValidateEmailForm() {
 		var email = $.trim($('#email-input').val());
 		var comment = "";
 
-		$('.carousel').carousel('next');
-		$('.carousel').carousel('pause');
-		// testing
-		// submitEmail();
+		if(email.length == 0) {
+			// nice try. we only take email addresses that aren't empty.
+			comment = "Nice try! It appears that your email is invisible.";
+		} else if(validateEmail(email)) {
+			// email is valid
 
-		// if(email.length == 0) {
-		// 	// nice try. we only take email addresses that aren't empty.
-		// 	comment = "<p>Nice try! But we are looking for an email address.</p>";
-		// } else if(validateEmail(email)) {
-		// 	// email is valid
-		// 	submitEmail();
-		// 	$('.carousel').carousel('next');
-		// 	$('.carousel').carousel('pause');
-		// } else {
-		// 	// email is invalid
-		// 	comment = "<p>Almost! Try adding a \"@\" somewhere in there.</p>";
-		// }
+			// hide div and replace it with "Great! Stay tuned for updates!"
+			$('#sign-up').html('<h3>Somewhere in the world a little bell just rang—we got your email!</h3>');
+			$('#sign-up').css('color', 'grey');
 
-		// // update the comment div
-		// $('#form-invalidate-comment').html(comment);	// reset the comment div
+			submitEmail();
+			$('.carousel').carousel('next');
+			$('.carousel').carousel('pause');
+		} else {
+			// email is invalid
+			var r = Math.floor(Math.random() * 3) + 1;
+			switch(r) {
+				case 1:
+					comment = "Almost! Try adding a \"@\" somewhere in there.";
+					break;
+				case 2:
+					comment = "Sorry, but it's got to be an email address.";
+					break;
+				case 3:
+					comment = "Oops, doesn't seem that is a proper email."
+					break;
+			}
+		}
+
+		// update the comment div
+		$('#form-invalidate-comment').html("<p>" + comment + "</p>");	// reset the comment div
 	})
 }
 
@@ -70,18 +91,10 @@ function initModifyEnterSubmit() {
 function submitEmail() {
 	var email = $('#email-input').val();
 
-	data = {
-		"emailAddress" : email
-	}
-
-	// $.post("http://piggybackv2.herokuapp.com/addEmailListing", { emailAddress : "hi@hi" }, function(data) {
-	// 	console.log(data);
-	// }, "json");
-
 	$.ajax({
 		type: "POST",
-		url: "http://10.0.4.187:5000/addEmailListing",
-		data: '{ "emailAddress" : "hi@test" }',
+		url: "http://piggybackv2.herokuapp.com/addEmailListing",
+		data: '{ "emailAddress" : "' + email + '" }',
 		dataType: "json",
 		contentType: "application/json",
 		success: function(data, textStatus, xhr) {
@@ -98,34 +111,98 @@ function submitEmail() {
 			console.log('.complete');
 		}
 	});
-
-	// crossDomainPost(email);
-
 }
 
-// function crossDomainPost(email) {
-// 	// Add the iframe with a unique name
-// 	var iframe = document.createElement("iframe");
-// 	var uniqueString = "piggybackEmailPost";
-// 	document.body.appendChild(iframe);
-// 	iframe.style.display = "none";
-// 	iframe.contentWindow.name = uniqueString;
-// 	$('iframe').attr('id', uniqueString);
 
-// 	// construct a form with hidden inputs, targeting the iframe
-// 	var form = document.createElement("form");
-// 	form.target = uniqueString;
-// 	form.action = "http://piggybackv2.herokuapp.com/addEmailListing";
-// 	form.method = "POST";
+function initShowCharacterNotes() {
+	$('.on-hover').hover(
+		function () {
+			// make every other image opacity .1
+			$('.character-img').css('opacity', '0.05');
+			// $('.character-img').css('z-index', '0');
 
+			// make hover target opacity = 1
+			var id = "#" + $(this).attr('id');
+			$(id).css('opacity', '1');
+			// $(id).css('z-index', '2');
 
-// 	// repeat for each parameter
-// 	var input = document.createElement("input");
-// 	input.type = "hidden";
-// 	input.name = "emailAddress";
-// 	input.value = email;
-// 	form.appendChild(input);
+			// show notes specific to target
+			id = id + "-notes";
+			$(id).removeClass("none");
+			$(id).css('z-index', '-1');
+		},
+		function () {
+			// make all opacity the same
+			$('.character-img').css('opacity', '1');
 
-// 	document.body.appendChild(form);
-// 	form.submit();
-// }
+			// get target id
+			var id = "#" + $(this).attr('id') + "-notes";
+
+			// remove notes specific to target
+			$(id).addClass("none");
+		}
+	)
+}
+
+function initShowProfilePics() {
+	$('.headshot').hover(
+		function () {
+			// show real pic
+			$(this).closest('section').find('.real').removeClass('none');
+		},
+		function () {
+			$(this).closest('section').find('.real').addClass('none');
+		}
+	)
+}
+
+function initScrollNextButton() {
+	$('#next-button').click(function() {
+		goToByScroll("ob-2");
+	})
+
+	$('#sign-up-now-button').click(function() {
+		goToByScroll("ob-5");
+	})
+
+	$(window).scroll(function() {
+		var y = $(window).scrollTop();
+		var target = "2";
+
+		$('#next-button').removeClass('none');
+		$('#sign-up-now-button').removeClass('none');
+
+		switch (true) {
+			case y < 840:
+				target = "2";
+				break;
+			case y < 1640:
+				target = "3";
+				break;
+			case y < 2440:
+				target = "4";
+				break;
+			case y < 3240:
+				target = "5";
+				break;
+			case y + $(window).height() + 100 > $(document).height():
+				// change the button to redirect to the signup page?
+				$('#next-button').addClass('none');
+				$('#sign-up-now-button').addClass('none');
+				break;
+			default:
+				target = "1";
+				break;
+		}
+		console.log(y);
+
+		$('#next-button').unbind()
+						   .click(function() {
+			goToByScroll("ob-" + target);
+		})
+	})
+}
+
+function goToByScroll(id) {
+	$('html,body').animate({scrollTop: $('#'+id).offset().top + 50}, 'slow');
+}
