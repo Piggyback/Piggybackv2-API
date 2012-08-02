@@ -602,11 +602,11 @@ def addEmailListing():
 # routing
 @app.route("/", methods = ['GET'])
 def index():
-    return render_template('home.html', route="splash" )
+    return render_template('home.html', route="about" )
 
 @app.route("/splash", methods = ['GET'])
 def showSplash():
-    return render_template('home.html')
+    return render_template('home.html', route="about")
 
 @app.route("/about", methods = ['GET'])
 def showAbout():
