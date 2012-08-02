@@ -161,11 +161,16 @@ function initScrollNextButton() {
 		goToByScroll("ob-2");
 	})
 
+	$('#sign-up-now-button').click(function() {
+		goToByScroll("ob-5");
+	})
+
 	$(window).scroll(function() {
 		var y = $(window).scrollTop();
 		var target = "2";
 
 		$('#next-button').removeClass('none');
+		$('#sign-up-now-button').removeClass('none');
 
 		switch (true) {
 			case y < 840:
@@ -183,6 +188,7 @@ function initScrollNextButton() {
 			case y + $(window).height() + 100 > $(document).height():
 				// change the button to redirect to the signup page?
 				$('#next-button').addClass('none');
+				$('#sign-up-now-button').addClass('none');
 				break;
 			default:
 				target = "1";
