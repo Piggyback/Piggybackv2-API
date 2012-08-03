@@ -171,6 +171,18 @@ class PbPlacesActivity(db.Model):
         self.placesActivityType = placesActivityType
         self.dateAdded = dateAdded
 
+class PbPlacesTodo(db.Model):
+    placesActivityId = db.Column(db.Integer, db.ForeignKey("pb_places_activity.placesActivityId"), primary_key=True)
+    followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
+    dateAdded = db.Column(db.DateTime)
+    status = db.Column(db.SmallInteger, default=0)      # 0=todo, 1=deleted, 2=completed
+
+    def __init__(self, placesActivityId, followerUid, dateAdded, status):
+        self.placesActivityId = placesActivityId
+        self.followerUid = followerUid
+        self.dateAdded = dateAdded
+        self.status = status
+
 class PbVideosItem(db.Model):
     videosItemId = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128))
@@ -369,6 +381,45 @@ def addMusicTodo():
 def removeMusicTodo():
     requestJson = request.json
     PbMusicTodo.query.filter_by(musicActivityId = requestJson['musicActivityId'], 
+        followerUid = requestJson['followerUid']).update({'status':1})
+
+    db.session.commit()
+    resp = jsonify({})
+    resp.status_code = 200;
+
+    return resp;
+
+@app.route("/addPlacesTodo", methods = ['POST'])
+def addPlacesTodo():
+    requestJson = request.json
+    now = datetime.datetime.now()
+    placesTodo = PbPlacesTodo(requestJson['placesActivityId'], requestJson['followerUid'], now, 0)
+    db.session.merge(placesTodo)
+    db.session.commit()
+
+    resp = jsonify({})
+    # Send push notification to trusted friend!
+    iphonePushTokenObject = PbIphonePushToken.query.filter_by(uid=requestJson['placesActivity']['uid']).first()
+    if iphonePushTokenObject:
+        token_hex = iphonePushTokenObject.iphonePushToken
+        payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' saved your place "' + requestJson['placesActivity']['placesItem']['name'] + '"!'
+        payload = Payload(alert=payloadMessage)
+        apns.gateway_server.send_notification(token_hex, payload)
+
+    # token_hex = "e834d8f50cfc82260533600649d592969b961fddf2ece393484ea80bebdd6d24"
+    # mike_token_hex = "6d9f47bf51e9096ad58bc02c386a6c775e90f56756147aace097713f5c95db73"
+    # payload = Payload(alert="Hey Kimbo")
+    # apns.gateway_server.send_notification(token_hex, payload)
+
+    resp = jsonify({"PBPlacesTodo":{"dateAdded":now.strftime("%Y-%m-%d %H:%M:%S")}})
+    resp.status_code = 200
+
+    return resp
+
+@app.route("/removePlacesTodo", methods = ['PUT'])
+def removePlacesTodo():
+    requestJson = request.json
+    PbPlacesTodo.query.filter_by(placesActivityId = requestJson['placesActivityId'], 
         followerUid = requestJson['followerUid']).update({'status':1})
 
     db.session.commit()
