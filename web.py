@@ -567,7 +567,7 @@ def addVideosActivity():
     now = datetime.datetime.now()
     videosActivity = PbVideosActivity(requestJson.get('uid'),
                                         requestJson.get('videosItemId'),
-                                        requestJson.get('videosActivityType').
+                                        requestJson.get('videosActivityType'),
                                         now)
     db.session.add(videosActivity)
     db.session.commit()
