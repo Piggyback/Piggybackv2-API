@@ -1,8 +1,18 @@
 $(document).ready( function() {
+	
+	// splash-home
 	$('.carousel').carousel('pause');
 	initShowNotes();
 	initValidateEmailForm();
 	initModifyEnterSubmit();
+
+	// about
+	initScrollNextButton();
+	initShowCharacterNotes();
+
+	// hover team page
+	initShowProfilePics();
+
 });
 
 function initShowNotes() {
@@ -30,6 +40,11 @@ function initValidateEmailForm() {
 			comment = "Nice try! It appears that your email is invisible.";
 		} else if(validateEmail(email)) {
 			// email is valid
+
+			// hide div and replace it with "Great! Stay tuned for updates!"
+			$('#sign-up').html('<h3>Somewhere in the world a little bell just rang—we got your email!</h3>');
+			$('#sign-up').css('color', 'grey');
+
 			submitEmail();
 			$('.carousel').carousel('next');
 			$('.carousel').carousel('pause');
@@ -96,4 +111,98 @@ function submitEmail() {
 			console.log('.complete');
 		}
 	});
+}
+
+
+function initShowCharacterNotes() {
+	$('.on-hover').hover(
+		function () {
+			// make every other image opacity .1
+			$('.character-img').css('opacity', '0.05');
+			// $('.character-img').css('z-index', '0');
+
+			// make hover target opacity = 1
+			var id = "#" + $(this).attr('id');
+			$(id).css('opacity', '1');
+			// $(id).css('z-index', '2');
+
+			// show notes specific to target
+			id = id + "-notes";
+			$(id).removeClass("none");
+			$(id).css('z-index', '-1');
+		},
+		function () {
+			// make all opacity the same
+			$('.character-img').css('opacity', '1');
+
+			// get target id
+			var id = "#" + $(this).attr('id') + "-notes";
+
+			// remove notes specific to target
+			$(id).addClass("none");
+		}
+	)
+}
+
+function initShowProfilePics() {
+	$('.headshot').hover(
+		function () {
+			// show real pic
+			$(this).closest('section').find('.real').removeClass('none');
+		},
+		function () {
+			$(this).closest('section').find('.real').addClass('none');
+		}
+	)
+}
+
+function initScrollNextButton() {
+	$('#next-button').click(function() {
+		goToByScroll("ob-2");
+	})
+
+	$('#sign-up-now-button').click(function() {
+		goToByScroll("ob-5");
+	})
+
+	$(window).scroll(function() {
+		var y = $(window).scrollTop();
+		var target = "2";
+
+		$('#next-button').removeClass('none');
+		$('#sign-up-now-button').removeClass('none');
+
+		switch (true) {
+			case y < 840:
+				target = "2";
+				break;
+			case y < 1640:
+				target = "3";
+				break;
+			case y < 2440:
+				target = "4";
+				break;
+			case y < 3240:
+				target = "5";
+				break;
+			case y + $(window).height() + 100 > $(document).height():
+				// change the button to redirect to the signup page?
+				$('#next-button').addClass('none');
+				$('#sign-up-now-button').addClass('none');
+				break;
+			default:
+				target = "1";
+				break;
+		}
+		console.log(y);
+
+		$('#next-button').unbind()
+						   .click(function() {
+			goToByScroll("ob-" + target);
+		})
+	})
+}
+
+function goToByScroll(id) {
+	$('html,body').animate({scrollTop: $('#'+id).offset().top + 50}, 'slow');
 }

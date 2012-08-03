@@ -12,7 +12,15 @@
 		<script type=text/javascript src="{{ url_for('static', filename='home.js') }}"></script>
 	</head>
 	<body>
-		{% include "splash.html" %}
+		{% include "header.html" %}
+		{% if route == "splash" %}
+			{% include "splash.html" %}
+		{% elif route == "about" %}
+			{% include "about.html" %}
+		{% elif route == "team" %}
+			{% include "team.html" %}
+		{% endif %}
+		{% include "footer.html" %}
 	</body>
 </html>
 
