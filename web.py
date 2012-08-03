@@ -107,9 +107,9 @@ class PbMusicItem(db.Model):
         self.songDuration = songDuration
 
 class PbMusicTodo(db.Model):
-    musicTodoId = db.Column(db.Integer, primary_key=True)     # not necessary?
-    musicActivityId = db.Column(db.Integer, db.ForeignKey("pb_music_activity.musicActivityId"))
-    followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
+    # musicTodoId = db.Column(db.Integer, primary_key=True)     # not necessary?
+    musicActivityId = db.Column(db.Integer, db.ForeignKey("pb_music_activity.musicActivityId"), primary_key=True)
+    followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
     dateAdded = db.Column(db.DateTime)
     status = db.Column(db.SmallInteger, default=0)      # 0=todo, 1=deleted, 2=completed
 
@@ -118,6 +118,18 @@ class PbMusicTodo(db.Model):
         self.followerUid = followerUid
         self.dateAdded = dateAdded
         self.status = status
+
+class PbMusicLike(db.Model):
+    musicActivityId = db.Column(db.Integer, db.ForeignKey("pb_music_activity.musicActivityId"), primary_key=True)
+    followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
+    dateAdded = db.Column(db.DateTime)
+    deleted = db.Column(db.SmallInteger, default=0)
+
+    def __init__(self, musicActivityId, followerUid, dateAdded, deleted):
+        self.musicActivityId = musicActivityId
+        self.followerUid = followerUid
+        self.dateAdded = dateAdded
+        self.deleted = deleted
 
 class PbPlacesItem(db.Model):
     placesItemId = db.Column(db.Integer, primary_key=True)
@@ -337,8 +349,8 @@ def addMusicTodo():
     resp = jsonify({})
     # Send push notification to trusted friend!
     iphonePushTokenObject = PbIphonePushToken.query.filter_by(uid=requestJson['musicActivity']['uid']).first()
-    token_hex = iphonePushTokenObject.iphonePushToken
-    if token_hex:
+    if iphonePushTokenObject:
+        token_hex = iphonePushTokenObject.iphonePushToken
         payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' saved your song "' + requestJson['musicActivity']['musicItem']['songTitle'] + '"!'
         payload = Payload(alert=payloadMessage)
         apns.gateway_server.send_notification(token_hex, payload)
@@ -348,7 +360,7 @@ def addMusicTodo():
     # payload = Payload(alert="Hey Kimbo")
     # apns.gateway_server.send_notification(token_hex, payload)
 
-    resp = jsonify({"PBMusicTodo":{"musicTodoId":musicTodo.musicTodoId, "dateAdded":now.strftime("%Y-%m-%d %H:%M:%S")}})
+    resp = jsonify({"PBMusicTodo":{"dateAdded":now.strftime("%Y-%m-%d %H:%M:%S")}})
     resp.status_code = 200
 
     return resp
@@ -358,6 +370,41 @@ def removeMusicTodo():
     requestJson = request.json
     PbMusicTodo.query.filter_by(musicActivityId = requestJson['musicActivityId'], 
         followerUid = requestJson['followerUid']).update({'status':1})
+
+    db.session.commit()
+    resp = jsonify({})
+    resp.status_code = 200;
+
+    return resp;
+
+# Like API
+@app.route("/addMusicLike", methods = ['POST'])
+def addMusicLike():
+    requestJson = request.json
+    now = datetime.datetime.now()
+    musicLike = PbMusicLike(requestJson['musicActivityId'], requestJson['followerUid'], now, 0)
+    db.session.merge(musicLike)
+    db.session.commit()
+
+    resp = jsonify({})
+    # Send push notification to trusted friend!
+    iphonePushTokenObject = PbIphonePushToken.query.filter_by(uid=requestJson['musicActivity']['uid']).first()
+    if iphonePushTokenObject:
+        token_hex = iphonePushTokenObject.iphonePushToken
+        payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' liked your song "' + requestJson['musicActivity']['musicItem']['songTitle'] + '"!'
+        payload = Payload(alert=payloadMessage)
+        apns.gateway_server.send_notification(token_hex, payload)
+
+    resp = jsonify({"PBMusicLike":{"dateAdded":now.strftime("%Y-%m-%d %H:%M:%S")}})
+    resp.status_code = 200
+
+    return resp
+
+@app.route("/removeMusicLike", methods = ['PUT'])
+def removeMusicLike():
+    requestJson = request.json
+    PbMusicLike.query.filter_by(musicActivityId = requestJson['musicActivityId'], 
+        followerUid = requestJson['followerUid']).update({'deleted':1})
 
     db.session.commit()
     resp = jsonify({})
@@ -451,7 +498,7 @@ def getNews():
         for todo in activity.todos:
             result['PBMusicActivity'][i]['news'].append(
                 {
-                    'musicNewsId':todo.musicTodoId,
+                    # 'musicNewsId':todo.musicTodoId,
                     'followerUid':todo.followerUid,
                     'musicActivityId':activity.musicActivityId,
                     'newsActionType':'todo',
@@ -478,19 +525,39 @@ def getNews():
 
     return resp
 
+@app.route("/musicActivity", methods = ['GET'])
+def getMusicActivity():
+    requestJson = request.json
+    musicActivity = PbMusicActivity.query.filter_by(musicItemId=requestJson.get('musicItemId'), uid=requestJson.get('uid')).first()
+    resp = None
+    if musicActivity == None:
+        resp = jsonify({'error':'MusicActivity does not exist'})
+        resp.status_code = 404
+    else:
+        resp = jsonify({"PBMusicActivity":{"musicActivityId":musicActivity.musicActivityId,
+                                            "uid":musicActivity.uid,
+                                            "musicItemId":musicActivity.musicItemId,
+                                            "musicActivityType":musicActivity.musicActivityType,
+                                            "dateAdded":musicActivity.dateAdded.strftime("%Y-%m-%d %H:%M:%S")}})
+        resp.status_code = 200
+
+    return resp
+
 @app.route("/addMusicActivity", methods = ['POST'])
 def addMusicActivity():
     requestJson = request.json
-    now = datetime.datetime.now()
-    musicActivity = PbMusicActivity(requestJson.get('uid'),
-                                    requestJson.get('musicItemId'),
-                                    requestJson.get('musicActivityType'),
-                                    now)
-    db.session.add(musicActivity)
-    db.session.commit()
+    resp = getMusicActivity()
+    if resp.status_code == 404:
+        now = datetime.datetime.now()
+        musicActivity = PbMusicActivity(requestJson.get('uid'),
+                                        requestJson.get('musicItemId'),
+                                        requestJson.get('musicActivityType'),
+                                        now)
+        db.session.add(musicActivity)
+        db.session.commit()
 
-    resp = jsonify({"PBMusicActivity":{"musicActivityId":musicActivity.musicActivityId,"dateAdded":musicActivity.dateAdded.strftime("%Y-%m-%d %H:%M:%S")}})
-    resp.status_code = 200
+        resp = jsonify({"PBMusicActivity":{"musicActivityId":musicActivity.musicActivityId,"dateAdded":musicActivity.dateAdded.strftime("%Y-%m-%d %H:%M:%S")}})
+        resp.status_code = 200
 
     return resp
 
@@ -521,6 +588,18 @@ def getPlacesItem():
 
     return resp
 
+@app.route("/updatePlacesItem", methods = ['PUT'])
+def updatePlacesItem():
+    requestJson = request.json
+    resp = jsonify({})
+    if requestJson.get('photoURL'):
+        PbPlacesItem.query.filter_by(foursquareReferenceId=requestJson['foursquareReferenceId']).update({'photoURL':requestJson['photoURL']})
+        db.session.commit()
+        resp = jsonify({"PBPlacesItem":{"photoURL":requestJson['photoURL']}})
+        resp.status_code = 200
+
+    return resp
+
 @app.route("/addPlacesItem", methods = ['POST'])
 def addPlacesItem():
     requestJson = request.json
@@ -545,35 +624,75 @@ def addPlacesItem():
 
     return resp
 
+@app.route("/placesActivity", methods = ['GET'])
+def getPlacesActivity():
+    requestJson = request.json
+    placesActivity = PbPlacesActivity.query.filter_by(placesItemId=requestJson.get('placesItemId'), uid=requestJson.get('uid')).first()
+    resp = None
+    if placesActivity == None:
+        resp = jsonify({'error':'PlacesActivity does not exist'})
+        resp.status_code = 404
+    else:
+        resp = jsonify({"PBPlacesActivity":{"placesActivityId":placesActivity.placesActivityId,
+                                            "uid":placesActivity.uid,
+                                            "placesItemId":placesActivity.placesItemId,
+                                            "placesActivityType":placesActivity.placesActivityType,
+                                            "dateAdded":placesActivity.dateAdded.strftime("%Y-%m-%d %H:%M:%S")}})
+        resp.status_code = 200
+
+    return resp
+
 @app.route("/addPlacesActivity", methods = ['POST'])
 def addPlacesActivity():
     requestJson = request.json
-    now = datetime.datetime.now()
-    placesActivity = PbPlacesActivity(requestJson.get('uid'),
-                                    requestJson.get('placesItemId'),
-                                    requestJson.get('placesActivityType'),
-                                    now)
-    db.session.add(placesActivity)
-    db.session.commit()
+    resp = getPlacesActivity()
+    if resp.status_code == 404:
+        now = datetime.datetime.now()
+        placesActivity = PbPlacesActivity(requestJson.get('uid'),
+                                        requestJson.get('placesItemId'),
+                                        requestJson.get('placesActivityType'),
+                                        now)
+        db.session.add(placesActivity)
+        db.session.commit()
 
-    resp = jsonify({"PBPlacesActivity":{"placesActivityId":placesActivity.placesActivityId,"dateAdded":placesActivity.dateAdded.strftime("%Y-%m-%d %H:%M:%S")}})
-    resp.status_code = 200
+        resp = jsonify({"PBPlacesActivity":{"placesActivityId":placesActivity.placesActivityId,"dateAdded":placesActivity.dateAdded.strftime("%Y-%m-%d %H:%M:%S")}})
+        resp.status_code = 200
+
+    return resp
+
+@app.route("/videosActivity", methods = ['GET'])
+def getVideosActivity():
+    requestJson = request.json
+    videosActivity = PbVideosActivity.query.filter_by(videosItemId=requestJson.get('videosItemId'), uid=requestJson.get('uid')).first()
+    resp = None
+    if videosActivity == None:
+        resp = jsonify({'error':'videosActivity does not exist'})
+        resp.status_code = 404
+    else:
+        resp = jsonify({"PBVideosActivity":{"videosActivityId":videosActivity.videosActivityId,
+                                            "uid":videosActivity.uid,
+                                            "videosItemId":videosActivity.videosItemId,
+                                            "videosActivityType":videosActivity.videosActivityType,
+                                            "dateAdded":videosActivity.dateAdded.strftime("%Y-%m-%d %H:%M:%S")}})
+        resp.status_code = 200
 
     return resp
 
 @app.route("/addVideosActivity", methods = ['POST'])
 def addVideosActivity():
     requestJson = request.json
-    now = datetime.datetime.now()
-    videosActivity = PbVideosActivity(requestJson.get('uid'),
-                                        requestJson.get('videosItemId'),
-                                        requestJson.get('videosActivityType'),
-                                        now)
-    db.session.add(videosActivity)
-    db.session.commit()
+    resp = getVideosActivity()
+    if resp.status_code == 404:
+        now = datetime.datetime.now()
+        videosActivity = PbVideosActivity(requestJson.get('uid'),
+                                            requestJson.get('videosItemId'),
+                                            requestJson.get('videosActivityType'),
+                                            now)
+        db.session.add(videosActivity)
+        db.session.commit()
 
-    resp = jsonify({"PBVideosActivity":{"videosActivityId":videosActivity.videosActivityId,"dateAdded":videosActivity.dateAdded.strftime("%Y-%m-%d %H:%M:%S")}})
-    resp.status_code = 200
+        resp = jsonify({"PBVideosActivity":{"videosActivityId":videosActivity.videosActivityId,"dateAdded":videosActivity.dateAdded.strftime("%Y-%m-%d %H:%M:%S")}})
+        resp.status_code = 200
 
     return resp
 
