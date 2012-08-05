@@ -177,30 +177,6 @@ class PbPlacesFeedback(db.Model):
         self.dateAdded = dateAdded
         self.status = status
 
-# class PbPlacesTodo(db.Model):
-#     placesActivityId = db.Column(db.Integer, db.ForeignKey("pb_places_activity.placesActivityId"), primary_key=True)
-#     followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
-#     dateAdded = db.Column(db.DateTime)
-#     status = db.Column(db.SmallInteger, default=0)      # 0=todo, 1=deleted, 2=completed
-
-#     def __init__(self, placesActivityId, followerUid, dateAdded, status):
-#         self.placesActivityId = placesActivityId
-#         self.followerUid = followerUid
-#         self.dateAdded = dateAdded
-#         self.status = status
-
-# class PbPlacesLike(db.Model):
-#     placesActivityId = db.Column(db.Integer, db.ForeignKey("pb_places_activity.placesActivityId"), primary_key=True)
-#     followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
-#     dateAdded = db.Column(db.DateTime)
-#     deleted = db.Column(db.SmallInteger, default=0)
-
-#     def __init__(self, placesActivityId, followerUid, dateAdded, deleted):
-#         self.placesActivityId = placesActivityId
-#         self.followerUid = followerUid
-#         self.dateAdded = dateAdded
-#         self.deleted = deleted
-
 class PbVideosItem(db.Model):
     videosItemId = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128))
@@ -408,7 +384,10 @@ def addMusicFeedback():
     iphonePushTokenObject = PbIphonePushToken.query.filter_by(uid=requestJson['musicActivity']['uid']).first()
     if iphonePushTokenObject:
         token_hex = iphonePushTokenObject.iphonePushToken
-        payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' saved your song "' + requestJson['musicActivity']['musicItem']['songTitle'] + '"!'
+        if requestJson['musicFeedbackType'] == 'todo':
+            payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' saved your song "' + requestJson['musicActivity']['musicItem']['songTitle'] + '"!'
+        elif requestJson['musicFeedbackType'] == 'like':
+            payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' liked your song "' + requestJson['musicActivity']['musicItem']['songTitle'] + '"!'
         payload = Payload(alert=payloadMessage)
         apns.gateway_server.send_notification(token_hex, payload)
 
@@ -452,7 +431,10 @@ def addPlacesFeedback():
     iphonePushTokenObject = PbIphonePushToken.query.filter_by(uid=requestJson['placesActivity']['uid']).first()
     if iphonePushTokenObject:
         token_hex = iphonePushTokenObject.iphonePushToken
-        payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' saved your check-in at "' + requestJson['placesActivity']['placesItem']['name'] + '"!'
+        if requestJson['placesFeedbackType'] == 'todo':
+            payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' saved your check-in at "' + requestJson['placesActivity']['placesItem']['name'] + '"!'
+        elif requestJson['placesFeedbackType'] == 'like':
+            payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' liked your check-in at "' + requestJson['placesActivity']['placesItem']['name'] + '"!'
         payload = Payload(alert=payloadMessage)
         apns.gateway_server.send_notification(token_hex, payload)
 
@@ -472,142 +454,46 @@ def removePlacesFeedback():
 
     return resp;
 
-# Todo API
-@app.route("/addMusicTodo", methods = ['POST'])
-def addMusicTodo():
+@app.route("/addVideosFeedback", methods = ['POST'])
+def addVideosFeedback():
     requestJson = request.json
     now = datetime.datetime.now()
-    musicTodo = PbMusicFeedback(requestJson['musicActivityId'], requestJson['followerUid'], "todo", now, 0)
-    db.session.merge(musicTodo)
-    db.session.commit()
+
+    # check if feedback already exists in DB. if so, update status to 0
+    videosFeedback = PbVideosFeedback.query.filter_by(videosActivityId = requestJson['videosActivityId'], 
+        followerUid = requestJson['followerUid'], videosFeedbackType = requestJson['videosFeedbackType']).first()
+
+    if videosFeedback:
+        PbVideosFeedback.query.filter_by(videosFeedbackId = videosFeedback.videosFeedbackId).update({'dateAdded':now, 'status':0})
+        db.session.commit()
+
+    else:
+        videosFeedback = PbVideosFeedback(requestJson['videosActivityId'], requestJson['followerUid'], requestJson['videosFeedbackType'], now, 0)
+        db.session.add(videosFeedback)
+        db.session.commit()
 
     resp = jsonify({})
+
     # Send push notification to trusted friend!
-    iphonePushTokenObject = PbIphonePushToken.query.filter_by(uid=requestJson['musicActivity']['uid']).first()
+    iphonePushTokenObject = PbIphonePushToken.query.filter_by(uid=requestJson['videosActivity']['uid']).first()
     if iphonePushTokenObject:
         token_hex = iphonePushTokenObject.iphonePushToken
-        payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' saved your song "' + requestJson['musicActivity']['musicItem']['songTitle'] + '"!'
+        if requestJson['videosFeedbackType'] == 'todo':
+            payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' saved your video "' + requestJson['videosActivity']['videoItem']['name'] + '"!'
+        elif requestJson['videosFeedbackType'] == 'like':
+            payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' liked your video "' + requestJson['videosActivity']['videoItem']['name'] + '"!'
         payload = Payload(alert=payloadMessage)
         apns.gateway_server.send_notification(token_hex, payload)
 
-    # token_hex = "e834d8f50cfc82260533600649d592969b961fddf2ece393484ea80bebdd6d24"
-    # mike_token_hex = "6d9f47bf51e9096ad58bc02c386a6c775e90f56756147aace097713f5c95db73"
-    # payload = Payload(alert="Hey Kimbo")
-    # apns.gateway_server.send_notification(token_hex, payload)
-
-    resp = jsonify({"PBMusicFeedback":{"dateAdded":now.strftime("%Y-%m-%d %H:%M:%S")}})
+    resp = jsonify({"PBVideosFeedback":{"videosFeedbackId":videosFeedback.videosFeedbackId, "dateAdded":now.strftime("%Y-%m-%d %H:%M:%S")}})
     resp.status_code = 200
 
     return resp
 
-@app.route("/removeMusicTodo", methods = ['PUT'])
-def removeMusicTodo():
+@app.route("/removeVideosFeedback", methods = ['PUT'])
+def removeVideosFeedback():
     requestJson = request.json
-    PbMusicFeedback.query.filter_by(musicActivityId = requestJson['musicActivityId'], 
-        followerUid = requestJson['followerUid'], musicFeedbackType = "todo").update({'status':1})
-
-    db.session.commit()
-    resp = jsonify({})
-    resp.status_code = 200;
-
-    return resp;
-
-@app.route("/addPlacesTodo", methods = ['POST'])
-def addPlacesTodo():
-    requestJson = request.json
-    now = datetime.datetime.now()
-    placesTodo = PbPlacesTodo(requestJson['placesActivityId'], requestJson['followerUid'], now, 0)
-    db.session.merge(placesTodo)
-    db.session.commit()
-
-    resp = jsonify({})
-    # Send push notification to trusted friend!
-    iphonePushTokenObject = PbIphonePushToken.query.filter_by(uid=requestJson['placesActivity']['uid']).first()
-    if iphonePushTokenObject:
-        token_hex = iphonePushTokenObject.iphonePushToken
-        payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' saved your check-in at "' + requestJson['placesActivity']['placesItem']['name'] + '"!'
-        payload = Payload(alert=payloadMessage)
-        apns.gateway_server.send_notification(token_hex, payload)
-
-    resp = jsonify({"PBPlacesTodo":{"dateAdded":now.strftime("%Y-%m-%d %H:%M:%S")}})
-    resp.status_code = 200
-
-    return resp
-
-@app.route("/removePlacesTodo", methods = ['PUT'])
-def removePlacesTodo():
-    requestJson = request.json
-    PbPlacesTodo.query.filter_by(placesActivityId = requestJson['placesActivityId'], 
-        followerUid = requestJson['followerUid']).update({'status':1})
-
-    db.session.commit()
-    resp = jsonify({})
-    resp.status_code = 200;
-
-    return resp;
-
-# Like API
-@app.route("/addMusicLike", methods = ['POST'])
-def addMusicLike():
-    requestJson = request.json
-    now = datetime.datetime.now()
-    musicLike = PbMusicLike(requestJson['musicActivityId'], requestJson['followerUid'], now, 0)
-    db.session.merge(musicLike)
-    db.session.commit()
-
-    resp = jsonify({})
-    # Send push notification to trusted friend!
-    iphonePushTokenObject = PbIphonePushToken.query.filter_by(uid=requestJson['musicActivity']['uid']).first()
-    if iphonePushTokenObject:
-        token_hex = iphonePushTokenObject.iphonePushToken
-        payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' liked your song "' + requestJson['musicActivity']['musicItem']['songTitle'] + '"!'
-        payload = Payload(alert=payloadMessage)
-        apns.gateway_server.send_notification(token_hex, payload)
-
-    resp = jsonify({"PBMusicLike":{"dateAdded":now.strftime("%Y-%m-%d %H:%M:%S")}})
-    resp.status_code = 200
-
-    return resp
-
-@app.route("/removeMusicLike", methods = ['PUT'])
-def removeMusicLike():
-    requestJson = request.json
-    PbMusicLike.query.filter_by(musicActivityId = requestJson['musicActivityId'], 
-        followerUid = requestJson['followerUid']).update({'deleted':1})
-
-    db.session.commit()
-    resp = jsonify({})
-    resp.status_code = 200;
-
-    return resp;
-
-@app.route("/addPlacesLike", methods = ['POST'])
-def addPlacesLike():
-    requestJson = request.json
-    now = datetime.datetime.now()
-    placesLike = PbPlacesLike(requestJson['placesActivityId'], requestJson['followerUid'], now, 0)
-    db.session.merge(placesLike)
-    db.session.commit()
-
-    resp = jsonify({})
-    # Send push notification to trusted friend!
-    iphonePushTokenObject = PbIphonePushToken.query.filter_by(uid=requestJson['placesActivity']['uid']).first()
-    if iphonePushTokenObject:
-        token_hex = iphonePushTokenObject.iphonePushToken
-        payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' liked your check-in at "' + requestJson['placesActivity']['placesItem']['name'] + '"!'
-        payload = Payload(alert=payloadMessage)
-        apns.gateway_server.send_notification(token_hex, payload)
-
-    resp = jsonify({"PBPlacesLike":{"dateAdded":now.strftime("%Y-%m-%d %H:%M:%S")}})
-    resp.status_code = 200
-
-    return resp
-
-@app.route("/removePlacesLike", methods = ['PUT'])
-def removePlacesLike():
-    requestJson = request.json
-    PbPlacesLike.query.filter_by(placesActivityId = requestJson['placesActivityId'], 
-        followerUid = requestJson['followerUid']).update({'deleted':1})
+    PbVideosFeedback.query.filter_by(videosFeedbackId = requestJson['videosFeedbackId']).update({'status':1})
 
     db.session.commit()
     resp = jsonify({})
