@@ -33,7 +33,7 @@ class PbUser(db.Model):
     dateBecamePbUser = db.Column(db.DateTime)
     ambassadors = db.relationship('PbAmbassador', backref='follower', lazy='dynamic')
     musicActivity = db.relationship('PbMusicActivity', backref='user', lazy='dynamic')
-    musicTodos = db.relationship('PbMusicTodo', backref='follower', lazy='dynamic')
+    musicFeedback = db.relationship('PbMusicFeedback', backref='follower', lazy='dynamic')
 
     def __init__(self, firstName, lastName, fbId, email, spotifyUsername, foursquareId, youtubeUsername, isPiggybackUser, dateAdded, dateBecamePbUser):
         self.firstName = firstName
@@ -74,20 +74,6 @@ class PbIphonePushToken(db.Model):
         self.iphonePushToken = iphonePushToken
         self.dateAdded = dateAdded
 
-class PbMusicActivity(db.Model):
-    musicActivityId = db.Column(db.Integer, primary_key=True)
-    uid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
-    musicItemId = db.Column(db.Integer, db.ForeignKey("pb_music_item.musicItemId"))
-    musicActivityType = db.Column(db.String(32))
-    dateAdded = db.Column(db.DateTime)
-    todos = db.relationship('PbMusicTodo', backref='musicActivity', lazy='select')
-
-    def __init__(self, uid, musicItemId, musicActivityType, dateAdded):
-        self.uid = uid
-        self.musicItemId = musicItemId
-        self.musicActivityType = musicActivityType
-        self.dateAdded = dateAdded
-
 class PbMusicItem(db.Model):
     musicItemId = db.Column(db.Integer, primary_key=True)
     artistName = db.Column(db.String(64))
@@ -106,30 +92,34 @@ class PbMusicItem(db.Model):
         self.spotifyUrl = spotifyUrl
         self.songDuration = songDuration
 
-class PbMusicTodo(db.Model):
-    # musicTodoId = db.Column(db.Integer, primary_key=True)     # not necessary?
-    musicActivityId = db.Column(db.Integer, db.ForeignKey("pb_music_activity.musicActivityId"), primary_key=True)
-    followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
+class PbMusicActivity(db.Model):
+    musicActivityId = db.Column(db.Integer, primary_key=True)
+    uid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
+    musicItemId = db.Column(db.Integer, db.ForeignKey("pb_music_item.musicItemId"))
+    musicActivityType = db.Column(db.String(16))
+    dateAdded = db.Column(db.DateTime)
+    feedback = db.relationship('PbMusicFeedback', backref='musicActivity', lazy='select')
+
+    def __init__(self, uid, musicItemId, musicActivityType, dateAdded):
+        self.uid = uid
+        self.musicItemId = musicItemId
+        self.musicActivityType = musicActivityType
+        self.dateAdded = dateAdded
+
+class PbMusicFeedback(db.Model):
+    musicFeedbackId = db.Column(db.Integer, primary_key=True)
+    musicActivityId = db.Column(db.Integer, db.ForeignKey("pb_music_activity.musicActivityId"))
+    followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
+    musicFeedbackType = db.Column(db.String(16))    # todo, like
     dateAdded = db.Column(db.DateTime)
     status = db.Column(db.SmallInteger, default=0)      # 0=todo, 1=deleted, 2=completed
 
-    def __init__(self, musicActivityId, followerUid, dateAdded, status):
+    def __init__(self, musicActivityId, followerUid, musicFeedbackType, dateAdded, status):
         self.musicActivityId = musicActivityId
         self.followerUid = followerUid
+        self.musicFeedbackType = musicFeedbackType
         self.dateAdded = dateAdded
         self.status = status
-
-class PbMusicLike(db.Model):
-    musicActivityId = db.Column(db.Integer, db.ForeignKey("pb_music_activity.musicActivityId"), primary_key=True)
-    followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
-    dateAdded = db.Column(db.DateTime)
-    deleted = db.Column(db.SmallInteger, default=0)
-
-    def __init__(self, musicActivityId, followerUid, dateAdded, deleted):
-        self.musicActivityId = musicActivityId
-        self.followerUid = followerUid
-        self.dateAdded = dateAdded
-        self.deleted = deleted
 
 class PbPlacesItem(db.Model):
     placesItemId = db.Column(db.Integer, primary_key=True)
@@ -164,6 +154,7 @@ class PbPlacesActivity(db.Model):
     placesItemId = db.Column(db.Integer, db.ForeignKey("pb_places_item.placesItemId"))
     placesActivityType = db.Column(db.String(32))
     dateAdded = db.Column(db.DateTime)
+    feedback = db.relationship('PbPlacesFeedback', backref='placesActivity', lazy='select')
 
     def __init__(self, uid, placesItemId, placesActivityType, dateAdded):
         self.uid = uid
@@ -171,29 +162,44 @@ class PbPlacesActivity(db.Model):
         self.placesActivityType = placesActivityType
         self.dateAdded = dateAdded
 
-class PbPlacesTodo(db.Model):
-    placesActivityId = db.Column(db.Integer, db.ForeignKey("pb_places_activity.placesActivityId"), primary_key=True)
-    followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
+class PbPlacesFeedback(db.Model):
+    placesFeedbackId = db.Column(db.Integer, primary_key=True)
+    placesActivityId = db.Column(db.Integer, db.ForeignKey("pb_places_activity.placesActivityId"))
+    followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
+    placesFeedbackType = db.Column(db.String(16))    # todo, like
     dateAdded = db.Column(db.DateTime)
     status = db.Column(db.SmallInteger, default=0)      # 0=todo, 1=deleted, 2=completed
 
-    def __init__(self, placesActivityId, followerUid, dateAdded, status):
+    def __init__(self, placesActivityId, followerUid, placesFeedbackType, dateAdded, status):
         self.placesActivityId = placesActivityId
         self.followerUid = followerUid
+        self.placesFeedbackType = placesFeedbackType
         self.dateAdded = dateAdded
         self.status = status
 
-class PbPlacesLike(db.Model):
-    placesActivityId = db.Column(db.Integer, db.ForeignKey("pb_places_activity.placesActivityId"), primary_key=True)
-    followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
-    dateAdded = db.Column(db.DateTime)
-    deleted = db.Column(db.SmallInteger, default=0)
+# class PbPlacesTodo(db.Model):
+#     placesActivityId = db.Column(db.Integer, db.ForeignKey("pb_places_activity.placesActivityId"), primary_key=True)
+#     followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
+#     dateAdded = db.Column(db.DateTime)
+#     status = db.Column(db.SmallInteger, default=0)      # 0=todo, 1=deleted, 2=completed
 
-    def __init__(self, placesActivityId, followerUid, dateAdded, deleted):
-        self.placesActivityId = placesActivityId
-        self.followerUid = followerUid
-        self.dateAdded = dateAdded
-        self.deleted = deleted
+#     def __init__(self, placesActivityId, followerUid, dateAdded, status):
+#         self.placesActivityId = placesActivityId
+#         self.followerUid = followerUid
+#         self.dateAdded = dateAdded
+#         self.status = status
+
+# class PbPlacesLike(db.Model):
+#     placesActivityId = db.Column(db.Integer, db.ForeignKey("pb_places_activity.placesActivityId"), primary_key=True)
+#     followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"), primary_key=True)
+#     dateAdded = db.Column(db.DateTime)
+#     deleted = db.Column(db.SmallInteger, default=0)
+
+#     def __init__(self, placesActivityId, followerUid, dateAdded, deleted):
+#         self.placesActivityId = placesActivityId
+#         self.followerUid = followerUid
+#         self.dateAdded = dateAdded
+#         self.deleted = deleted
 
 class PbVideosItem(db.Model):
     videosItemId = db.Column(db.Integer, primary_key=True)
@@ -210,12 +216,28 @@ class PbVideosActivity(db.Model):
     videosItemId = db.Column(db.Integer, db.ForeignKey("pb_videos_item.videosItemId"))
     videosActivityType = db.Column(db.String(32))
     dateAdded = db.Column(db.DateTime)
+    feedback = db.relationship('PbVideosFeedback', backref='videosActivity', lazy='select')
 
     def __init__(self, uid, videosItemId, videosActivityType, dateAdded):
         self.uid = uid
         self.videosItemId = videosItemId
         self.videosActivityType = videosActivityType
         self.dateAdded = dateAdded
+
+class PbVideosFeedback(db.Model):
+    videosFeedbackId = db.Column(db.Integer, primary_key=True)
+    videosActivityId = db.Column(db.Integer, db.ForeignKey("pb_videos_activity.videosActivityId"))
+    followerUid = db.Column(db.Integer, db.ForeignKey("pb_user.uid"))
+    videosFeedbackType = db.Column(db.String(16))    # todo, like
+    dateAdded = db.Column(db.DateTime)
+    status = db.Column(db.SmallInteger, default=0)      # 0=todo, 1=deleted, 2=completed
+
+    def __init__(self, videosActivityId, followerUid, videosFeedbackType, dateAdded, status):
+        self.videosActivityId = videosActivityId
+        self.followerUid = followerUid
+        self.videosFeedbackType = videosFeedbackType
+        self.dateAdded = dateAdded
+        self.status = status
 
 class PbEmailListing(db.Model):
     emailId = db.Column(db.Integer, primary_key=True)
@@ -361,12 +383,101 @@ def removeAmbassador():
 
     return resp
 
+# Feedback API
+@app.route("/addMusicFeedback", methods = ['POST'])
+def addMusicFeedback():
+    requestJson = request.json
+    now = datetime.datetime.now()
+
+    # check if feedback already exists in DB. if so, update status to 0
+    musicFeedback = PbMusicFeedback.query.filter_by(musicActivityId = requestJson['musicActivityId'], 
+        followerUid = requestJson['followerUid'], musicFeedbackType = requestJson['musicFeedbackType']).first()
+
+    if musicFeedback:
+        PbMusicFeedback.query.filter_by(musicFeedbackId = musicFeedback.musicFeedbackId).update({'dateAdded':now, 'status':0})
+        db.session.commit()
+
+    else:
+        musicFeedback = PbMusicFeedback(requestJson['musicActivityId'], requestJson['followerUid'], requestJson['musicFeedbackType'], now, 0)
+        db.session.add(musicFeedback)
+        db.session.commit()
+
+    resp = jsonify({})
+
+    # Send push notification to trusted friend!
+    iphonePushTokenObject = PbIphonePushToken.query.filter_by(uid=requestJson['musicActivity']['uid']).first()
+    if iphonePushTokenObject:
+        token_hex = iphonePushTokenObject.iphonePushToken
+        payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' saved your song "' + requestJson['musicActivity']['musicItem']['songTitle'] + '"!'
+        payload = Payload(alert=payloadMessage)
+        apns.gateway_server.send_notification(token_hex, payload)
+
+    resp = jsonify({"PBMusicFeedback":{"musicFeedbackId":musicFeedback.musicFeedbackId, "dateAdded":now.strftime("%Y-%m-%d %H:%M:%S")}})
+    resp.status_code = 200
+
+    return resp
+
+@app.route("/removeMusicFeedback", methods = ['PUT'])
+def removeMusicFeedback():
+    requestJson = request.json
+    PbMusicFeedback.query.filter_by(musicFeedbackId = requestJson['musicFeedbackId']).update({'status':1})
+
+    db.session.commit()
+    resp = jsonify({})
+    resp.status_code = 200;
+
+    return resp; 
+
+@app.route("/addPlacesFeedback", methods = ['POST'])
+def addPlacesFeedback():
+    requestJson = request.json
+    now = datetime.datetime.now()
+
+    # check if feedback already exists in DB. if so, update status to 0
+    placesFeedback = PbPlacesFeedback.query.filter_by(placesActivityId = requestJson['placesActivityId'], 
+        followerUid = requestJson['followerUid'], placesFeedbackType = requestJson['placesFeedbackType']).first()
+
+    if placesFeedback:
+        PbPlacesFeedback.query.filter_by(placesFeedbackId = placesFeedback.placesFeedbackId).update({'dateAdded':now, 'status':0})
+        db.session.commit()
+
+    else:
+        placesFeedback = PbPlacesFeedback(requestJson['placesActivityId'], requestJson['followerUid'], requestJson['placesFeedbackType'], now, 0)
+        db.session.add(placesFeedback)
+        db.session.commit()
+
+    resp = jsonify({})
+
+    # Send push notification to trusted friend!
+    iphonePushTokenObject = PbIphonePushToken.query.filter_by(uid=requestJson['placesActivity']['uid']).first()
+    if iphonePushTokenObject:
+        token_hex = iphonePushTokenObject.iphonePushToken
+        payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' saved your check-in at "' + requestJson['placesActivity']['placesItem']['name'] + '"!'
+        payload = Payload(alert=payloadMessage)
+        apns.gateway_server.send_notification(token_hex, payload)
+
+    resp = jsonify({"PBPlacesFeedback":{"placesFeedbackId":placesFeedback.placesFeedbackId, "dateAdded":now.strftime("%Y-%m-%d %H:%M:%S")}})
+    resp.status_code = 200
+
+    return resp
+
+@app.route("/removePlacesFeedback", methods = ['PUT'])
+def removePlacesFeedback():
+    requestJson = request.json
+    PbPlacesFeedback.query.filter_by(placesFeedbackId = requestJson['placesFeedbackId']).update({'status':1})
+
+    db.session.commit()
+    resp = jsonify({})
+    resp.status_code = 200;
+
+    return resp;
+
 # Todo API
 @app.route("/addMusicTodo", methods = ['POST'])
 def addMusicTodo():
     requestJson = request.json
     now = datetime.datetime.now()
-    musicTodo = PbMusicTodo(requestJson['musicActivityId'], requestJson['followerUid'], now, 0)
+    musicTodo = PbMusicFeedback(requestJson['musicActivityId'], requestJson['followerUid'], "todo", now, 0)
     db.session.merge(musicTodo)
     db.session.commit()
 
@@ -384,7 +495,7 @@ def addMusicTodo():
     # payload = Payload(alert="Hey Kimbo")
     # apns.gateway_server.send_notification(token_hex, payload)
 
-    resp = jsonify({"PBMusicTodo":{"dateAdded":now.strftime("%Y-%m-%d %H:%M:%S")}})
+    resp = jsonify({"PBMusicFeedback":{"dateAdded":now.strftime("%Y-%m-%d %H:%M:%S")}})
     resp.status_code = 200
 
     return resp
@@ -392,8 +503,8 @@ def addMusicTodo():
 @app.route("/removeMusicTodo", methods = ['PUT'])
 def removeMusicTodo():
     requestJson = request.json
-    PbMusicTodo.query.filter_by(musicActivityId = requestJson['musicActivityId'], 
-        followerUid = requestJson['followerUid']).update({'status':1})
+    PbMusicFeedback.query.filter_by(musicActivityId = requestJson['musicActivityId'], 
+        followerUid = requestJson['followerUid'], musicFeedbackType = "todo").update({'status':1})
 
     db.session.commit()
     resp = jsonify({})
@@ -587,27 +698,27 @@ def getNews():
             },
             'news':[]
         })
-        for todo in activity.todos:
+        for feedback in activity.feedback:
             result['PBMusicActivity'][i]['news'].append(
                 {
-                    # 'musicNewsId':todo.musicTodoId,
-                    'followerUid':todo.followerUid,
+                    'musicNewsId':feedback.musicFeedbackId,
+                    'followerUid':feedback.followerUid,
                     'musicActivityId':activity.musicActivityId,
-                    'newsActionType':'todo',
-                    'dateAdded':todo.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
+                    'newsActionType':feedback.musicFeedbackType,
+                    'dateAdded':feedback.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
                     'follower': 
                     {
-                        'uid':todo.follower.uid,
-                        'firstName':todo.follower.firstName,
-                        'lastName':todo.follower.lastName,
-                        'fbId':todo.follower.fbId,
-                        'email':todo.follower.email,
-                        'spotifyUsername':todo.follower.spotifyUsername,
-                        'foursquareId':todo.follower.foursquareId,
-                        'youtubeUsername':todo.follower.youtubeUsername,
-                        'isPiggybackUser':todo.follower.isPiggybackUser,
-                        'dateAdded':todo.follower.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
-                        'dateBecamePbUser':todo.follower.dateAdded.strftime("%Y-%m-%d %H:%M:%S")
+                        'uid':feedback.follower.uid,
+                        'firstName':feedback.follower.firstName,
+                        'lastName':feedback.follower.lastName,
+                        'fbId':feedback.follower.fbId,
+                        'email':feedback.follower.email,
+                        'spotifyUsername':feedback.follower.spotifyUsername,
+                        'foursquareId':feedback.follower.foursquareId,
+                        'youtubeUsername':feedback.follower.youtubeUsername,
+                        'isPiggybackUser':feedback.follower.isPiggybackUser,
+                        'dateAdded':feedback.follower.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
+                        'dateBecamePbUser':feedback.follower.dateAdded.strftime("%Y-%m-%d %H:%M:%S")
                     }
                 })
 
