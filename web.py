@@ -34,6 +34,10 @@ class PbUser(db.Model):
     ambassadors = db.relationship('PbAmbassador', backref='follower', lazy='dynamic')
     musicActivity = db.relationship('PbMusicActivity', backref='user', lazy='dynamic')
     musicFeedback = db.relationship('PbMusicFeedback', backref='follower', lazy='dynamic')
+    placesActivity = db.relationship('PbPlacesActivity', backref='user', lazy='dynamic')
+    placesFeedback = db.relationship('PbPlacesFeedback', backref='follower', lazy='dynamic')
+    videosActivity = db.relationship('PbVideosActivity', backref='user', lazy='dynamic')
+    videosFeedback = db.relationship('PbVideosFeedback', backref='follower', lazy='dynamic')
 
     def __init__(self, firstName, lastName, fbId, email, spotifyUsername, foursquareId, youtubeUsername, isPiggybackUser, dateAdded, dateBecamePbUser):
         self.firstName = firstName
@@ -134,6 +138,7 @@ class PbPlacesItem(db.Model):
     lat = db.Column(db.Float)
     lng = db.Column(db.Float)
     photoURL = db.Column(db.String(256))
+    inPlacesActivity = db.relationship('PbPlacesActivity', backref='placesItem', lazy='select')
 
     def __init__(self, name, phone, addr, addrCity, addrState, addrCountry, addrZip, foursquareReferenceId, lat, lng, photoURL):
         self.name = name
@@ -181,6 +186,7 @@ class PbVideosItem(db.Model):
     videosItemId = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128))
     videoURL = db.Column(db.String(256))
+    inVideosActivity = db.relationship('PbVideosActivity', backref='videosItem', lazy='select')
 
     def __init__(self, name, videoURL):
         self.name = name
@@ -479,9 +485,9 @@ def addVideosFeedback():
     if iphonePushTokenObject:
         token_hex = iphonePushTokenObject.iphonePushToken
         if requestJson['videosFeedbackType'] == 'todo':
-            payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' saved your video "' + requestJson['videosActivity']['videoItem']['name'] + '"!'
+            payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' saved your video "' + requestJson['videosActivity']['videosItem']['name'] + '"!'
         elif requestJson['videosFeedbackType'] == 'like':
-            payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' liked your video "' + requestJson['videosActivity']['videoItem']['name'] + '"!'
+            payloadMessage = requestJson['follower']['firstName'] + ' ' + requestJson['follower']['lastName'] + ' liked your video "' + requestJson['videosActivity']['videosItem']['name'] + '"!'
         payload = Payload(alert=payloadMessage)
         apns.gateway_server.send_notification(token_hex, payload)
 
@@ -561,15 +567,15 @@ def addMusicItem():
     return resp
 
 # News Feed
-@app.route("/news", methods = ['GET'])
-def getNews():
+@app.route("/musicNews", methods = ['GET'])
+def getMusicNews():
     musicActivity = PbMusicActivity.query.filter_by(uid=request.args['uid']).all()
     result = {'PBMusicActivity':[]}
     i=0
     for activity in musicActivity:
         result['PBMusicActivity'].append({
             'musicActivityId':activity.musicActivityId,
-            'musicActivityType':'toptrack',
+            'musicActivityType':activity.musicActivityType,
             'musicItemId':activity.musicItem.musicItemId,
             'uid':activity.uid,
             'dateAdded':activity.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
@@ -591,6 +597,115 @@ def getNews():
                     'followerUid':feedback.followerUid,
                     'musicActivityId':activity.musicActivityId,
                     'newsActionType':feedback.musicFeedbackType,
+                    'dateAdded':feedback.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
+                    'follower': 
+                    {
+                        'uid':feedback.follower.uid,
+                        'firstName':feedback.follower.firstName,
+                        'lastName':feedback.follower.lastName,
+                        'fbId':feedback.follower.fbId,
+                        'email':feedback.follower.email,
+                        'spotifyUsername':feedback.follower.spotifyUsername,
+                        'foursquareId':feedback.follower.foursquareId,
+                        'youtubeUsername':feedback.follower.youtubeUsername,
+                        'isPiggybackUser':feedback.follower.isPiggybackUser,
+                        'dateAdded':feedback.follower.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
+                        'dateBecamePbUser':feedback.follower.dateAdded.strftime("%Y-%m-%d %H:%M:%S")
+                    }
+                })
+
+        i = i+1
+
+    resp = jsonify(result)
+
+    return resp
+
+@app.route("/placesNews", methods = ['GET'])
+def getPlacesNews():
+    placesActivity = PbPlacesActivity.query.filter_by(uid=request.args['uid']).all()
+    result = {'PBPlacesActivity':[]}
+    i=0
+    for activity in placesActivity:
+        result['PBPlacesActivity'].append({
+            'placesActivityId':activity.placesActivityId,
+            'placesActivityType':activity.placesActivityType,
+            'placesItemId':activity.placesItem.placesItemId,
+            'uid':activity.uid,
+            'dateAdded':activity.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
+            'placesItem':
+            {
+                'placesItemId':activity.placesItem.placesItemId,
+                'name':activity.placesItem.name,
+                'phone':activity.placesItem.phone,
+                'addr':activity.placesItem.addr,
+                'addrCity':activity.placesItem.addrCity,
+                'addrState':activity.placesItem.addrState,
+                'addrCountry':activity.placesItem.addrCountry,
+                'addrZip':activity.placesItem.addrZip,
+                'foursquareReferenceId':activity.placesItem.foursquareReferenceId,
+                'lat':activity.placesItem.lat,
+                'lng':activity.placesItem.lng,
+                'photoURL':activity.placesItem.photoURL
+            },
+            'news':[]
+        })
+        for feedback in activity.feedback:
+            result['PBPlacesActivity'][i]['news'].append(
+                {
+                    'placesNewsId':feedback.placesFeedbackId,
+                    'followerUid':feedback.followerUid,
+                    'placesActivityId':activity.placesActivityId,
+                    'newsActionType':feedback.placesFeedbackType,
+                    'dateAdded':feedback.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
+                    'follower': 
+                    {
+                        'uid':feedback.follower.uid,
+                        'firstName':feedback.follower.firstName,
+                        'lastName':feedback.follower.lastName,
+                        'fbId':feedback.follower.fbId,
+                        'email':feedback.follower.email,
+                        'spotifyUsername':feedback.follower.spotifyUsername,
+                        'foursquareId':feedback.follower.foursquareId,
+                        'youtubeUsername':feedback.follower.youtubeUsername,
+                        'isPiggybackUser':feedback.follower.isPiggybackUser,
+                        'dateAdded':feedback.follower.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
+                        'dateBecamePbUser':feedback.follower.dateAdded.strftime("%Y-%m-%d %H:%M:%S")
+                    }
+                })
+
+        i = i+1
+
+    resp = jsonify(result)
+
+    return resp
+
+@app.route("/videosNews", methods = ['GET'])
+def getVideosNews():
+    videosActivity = PbVideosActivity.query.filter_by(uid=request.args['uid']).all()
+    result = {'PBVideosActivity':[]}
+    i=0
+    for activity in videosActivity:
+        result['PBVideosActivity'].append({
+            'videosActivityId':activity.videosActivityId,
+            'videosActivityType':activity.videosActivityType,
+            'videosItemId':activity.videosItem.videosItemId,
+            'uid':activity.uid,
+            'dateAdded':activity.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
+            'videosItem':
+            {
+                'videosItemId':activity.videosItem.videosItemId,
+                'name':activity.videosItem.name,
+                'videoURL':activity.videosItem.videoURL
+            },
+            'news':[]
+        })
+        for feedback in activity.feedback:
+            result['PBVideosActivity'][i]['news'].append(
+                {
+                    'videosNewsId':feedback.videosFeedbackId,
+                    'followerUid':feedback.followerUid,
+                    'videosActivityId':activity.videosActivityId,
+                    'newsActionType':feedback.videosFeedbackType,
                     'dateAdded':feedback.dateAdded.strftime("%Y-%m-%d %H:%M:%S"),
                     'follower': 
                     {
