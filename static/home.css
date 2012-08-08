@@ -413,6 +413,50 @@ section #submit-email-button {
 	width: 32em;
 }
 
+/* demo */
+
+#iphone-frame {
+	left: 100px;
+	position: fixed;
+	top: 80px;
+	width: 372px;
+}
+
+#iphone-container {
+	height: 367px;
+	margin: 272px 100px 0px 127px;
+	/*top: 272px;*/
+	width: 320px;
+}
+
+#iphone-home-slide {/*
+	overflow-x: hidden;
+	overflow-y: scroll;*/
+}
+
+#top-mask, #bottom-mask {
+	background: white;
+	position: fixed;
+	width: 100%;
+}
+
+#top-mask {
+	height: 100px;
+	top: 40px;
+}
+
+#bottom-mask {
+	height: 500px;
+	top: 639px;
+}
+
+#demo-scroll-button {
+	top: 100px;
+	right: 200px;
+	font-size: 2em;
+	position: fixed;
+}
+
 @font-face {
     font-family: 'BebasRegular';
     src: url('font/BEBAS___-webfont.eot');

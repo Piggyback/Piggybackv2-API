@@ -13,6 +13,8 @@ $(document).ready( function() {
 	// hover team page
 	initShowProfilePics();
 
+	// init demo scroll button
+	initDemoScrollButton();
 });
 
 function initShowNotes() {
@@ -200,6 +202,16 @@ function initScrollNextButton() {
 						   .click(function() {
 			goToByScroll("ob-" + target);
 		})
+	})
+}
+
+function initDemoScrollButton() {
+	$('#demo-scroll-button').click( function() {
+		$('html, body').animate({
+			scrollTop: $(document).height() - $(window).height()},
+			15000, "linear", function() {}
+		);
+		return false;
 	})
 }
 
