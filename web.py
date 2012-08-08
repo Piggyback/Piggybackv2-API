@@ -968,6 +968,43 @@ def addEmailListing():
 
     return resp
 
+# profile page API
+@app.route("/profilePage", methods = ['GET'])
+def getProfilePage():
+    numPiggybackers = PbAmbassador.query.filter_by(ambassadorUid=request.args['uid'], deleted=0 ).count()
+    numLikes = 0
+    numSaves = 0
+    musicActivity = PbMusicActivity.query.filter_by(uid=request.args['uid']).all()
+    placesActivity = PbPlacesActivity.query.filter_by(uid=request.args['uid']).all()
+    videosActivity = PbVideosActivity.query.filter_by(uid=request.args['uid']).all()
+
+    for activity in musicActivity:
+        for feedback in activity.feedback:
+            if feedback.musicFeedbackType == "todo":
+                numSaves = numSaves + 1
+            elif feedback.musicFeedbackType == "like":
+                numLikes = numLikes + 1
+
+    for activity in placesActivity:
+        for feedback in activity.feedback:
+            if feedback.placesFeedbackType == "todo":
+                numSaves = numSaves + 1
+            elif feedback.placesFeedbackType == "like":
+                numLikes = numLikes + 1
+
+    for activity in videosActivity:
+        for feedback in activity.feedback:
+            if feedback.videosFeedbackType == "todo":
+                numSaves = numSaves + 1
+            elif feedback.videosFeedbackType == "like":
+                numLikes = numLikes + 1
+
+    result = {'numPiggybackers':numPiggybackers, 'numLikes':numLikes, 'numSaves':numSaves}
+
+    resp = jsonify(result)
+
+    return resp
+
 # routing
 @app.route("/", methods = ['GET'])
 def index():
