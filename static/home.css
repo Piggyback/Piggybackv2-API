@@ -418,13 +418,13 @@ section #submit-email-button {
 #iphone-frame {
 	left: 100px;
 	position: fixed;
-	top: 80px;
+	top: 60px;
 	width: 372px;
 }
 
 #iphone-container {
 	height: 367px;
-	margin: 272px 100px 0px 127px;
+	margin: 252px 100px 0px 127px;
 	/*top: 272px;*/
 	width: 320px;
 }
