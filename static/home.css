@@ -415,7 +415,7 @@ section #submit-email-button {
 
 /* demo */
 
-#iphone-frame {
+.iphone-frame {
 	left: 100px;
 	position: fixed;
 	top: 60px;
