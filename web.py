@@ -971,36 +971,53 @@ def addEmailListing():
 # profile page API
 @app.route("/profilePage", methods = ['GET'])
 def getProfilePage():
-    numPiggybackers = PbAmbassador.query.filter_by(ambassadorUid=request.args['uid'], deleted=0 ).count()
-    numLikes = 0
-    numSaves = 0
+    numMusicPiggybackers = 0
+    numPlacesPiggybackers = 0
+    numVideosPiggybackers = 0
+    numMusicLikes = 0
+    numPlacesLikes = 0
+    numVideosLikes = 0
+    numMusicSaves = 0
+    numPlacesSaves = 0
+    numVideosSaves = 0
+    piggybackers = PbAmbassador.query.filter_by(ambassadorUid=request.args['uid'], deleted=0 ).all()
     musicActivity = PbMusicActivity.query.filter_by(uid=request.args['uid']).all()
     placesActivity = PbPlacesActivity.query.filter_by(uid=request.args['uid']).all()
     videosActivity = PbVideosActivity.query.filter_by(uid=request.args['uid']).all()
 
+    for piggybacker in piggybackers:
+        if piggybacker.ambassadorType == "music":
+            numMusicPiggybackers = numMusicPiggybackers + 1
+        if piggybacker.ambassadorType == "places":
+            numPlacesPiggybackers = numPlacesPiggybackers + 1
+        if piggybacker.ambassadorType == "videos":
+            numVideosPiggybackers = numVideosPiggybackers + 1
+
     for activity in musicActivity:
         for feedback in activity.feedback:
             if feedback.musicFeedbackType == "todo":
-                numSaves = numSaves + 1
+                numMusicSaves = numMusicSaves + 1
             elif feedback.musicFeedbackType == "like":
-                numLikes = numLikes + 1
+                numMusicLikes = numMusicLikes + 1
 
     for activity in placesActivity:
         for feedback in activity.feedback:
             if feedback.placesFeedbackType == "todo":
-                numSaves = numSaves + 1
+                numPlacesSaves = numPlacesSaves + 1
             elif feedback.placesFeedbackType == "like":
-                numLikes = numLikes + 1
+                numPlacesLikes = numPlacesLikes + 1
 
     for activity in videosActivity:
         for feedback in activity.feedback:
             if feedback.videosFeedbackType == "todo":
-                numSaves = numSaves + 1
+                numVideosSaves = numVideosSaves + 1
             elif feedback.videosFeedbackType == "like":
-                numLikes = numLikes + 1
+                numVideosLikes = numVideosLikes + 1
 
-    result = {'numPiggybackers':numPiggybackers, 'numLikes':numLikes, 'numSaves':numSaves}
-
+    # result = {'numPiggybackers':numPiggybackers, 'numLikes':numLikes, 'numSaves':numSaves}
+    result = {'numMusicPiggybackers':numMusicPiggybackers, 'numPlacesPiggybackers':numPlacesPiggybackers, 'numVideosPiggybackers':numVideosPiggybackers,
+                'numMusicLikes':numMusicLikes, 'numPlacesLikes':numPlacesLikes, 'numVideosLikes':numVideosLikes, 'numMusicSaves':numMusicSaves,
+                'numPlacesSaves':numPlacesSaves, 'numVideosSaves':numVideosSaves}
     resp = jsonify(result)
 
     return resp
